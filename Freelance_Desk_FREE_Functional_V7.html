@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Freelance Desk — Free Freelancer Workspace</title>
+<meta name="description" content="A free all-in-one workspace for freelancers, virtual assistants, remote workers, and career shifters.">
+<style>
+:root{
+  --bg:#f7f4ef;--panel:#fffdf9;--panel2:#f0ebe4;--ink:#252427;--muted:#736e70;
+  --line:#ded8d1;--accent:#5a4d78;--accent2:#e4dbea;--good:#2f6b4f;--warn:#97651d;
+  --bad:#9a3d3d;--shadow:0 10px 30px rgba(48,40,35,.07);--r:18px
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}.hidden{display:none!important}
+.app{display:grid;grid-template-columns:275px minmax(0,1fr);min-height:100vh}
+.sidebar{height:100vh;position:sticky;top:0;background:#fff;border-right:1px solid var(--line);padding:18px;overflow:auto;z-index:40}
+.brand{display:flex;gap:11px;align-items:center;padding:3px 3px 17px}.brandmark{width:44px;height:44px;border-radius:14px;background:var(--accent);color:#fff;display:grid;place-items:center;font-weight:900}.brand h1{font-size:17px;margin:0}.brand p{font-size:11px;color:var(--muted);margin:3px 0 0}
+.navlabel{font-size:10px;letter-spacing:.16em;font-weight:900;color:#9a9290;margin:18px 10px 7px}.nav{width:100%;border:0;background:none;border-radius:12px;padding:10px 11px;display:flex;gap:10px;align-items:center;text-align:left;color:#514d50;margin:2px 0}.nav:hover,.nav.active{background:var(--panel2);color:var(--accent);font-weight:800}.nav .ic{width:24px;text-align:center}
+.side-note{margin-top:20px;padding:13px;border:1px solid var(--line);background:var(--panel);border-radius:14px;font-size:12px;color:var(--muted)}
+.main{min-width:0}.top{height:72px;position:sticky;top:0;z-index:30;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 22px}.top-left,.top-actions{display:flex;gap:9px;align-items:center}.mobile{display:none}.top button,.btn{border:1px solid var(--line);background:#fff;border-radius:11px;padding:9px 12px;color:var(--ink)}.btn:hover,.top button:hover{border-color:#bfb5ad}.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn.good{background:var(--good);color:#fff;border-color:var(--good)}.btn.bad{color:var(--bad)}.btn.sm{padding:6px 9px;font-size:12px}.content{padding:25px;max-width:1540px;margin:auto}
+.eyebrow{font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--accent);font-weight:900}.title{font-size:31px;margin:7px 0}.muted{color:var(--muted)}.small{font-size:12px}.tiny{font-size:10px}.strong{font-weight:800}
+.hero{display:grid;grid-template-columns:1.45fr 1fr;gap:17px;margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}.pad{padding:20px}.hero .pad{padding:25px}.hero h2{font-size:34px;margin:8px 0}.hero p{margin:0;color:var(--muted)}
+.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:15px}.quick button{padding:14px;border-radius:13px;border:1px solid var(--line);background:#fff;text-align:left}.quick strong{display:block}.quick span{color:var(--muted);font-size:11px}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.c3{grid-column:span 3}.c4{grid-column:span 4}.c5{grid-column:span 5}.c6{grid-column:span 6}.c7{grid-column:span 7}.c8{grid-column:span 8}.c12{grid-column:span 12}.stat{font-size:31px;font-weight:900}.row{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.between{justify-content:space-between}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.head h2,.head h3{margin:0}
+.pill{display:inline-flex;align-items:center;border-radius:999px;padding:5px 9px;background:var(--panel2);font-size:11px;font-weight:800;gap:5px}.pill.good{background:#e8f4ec;color:var(--good)}.pill.warn{background:#fff2dc;color:var(--warn)}.pill.bad{background:#fae8e8;color:var(--bad)}
+.tabs{display:flex;gap:7px;overflow:auto;padding-bottom:4px;margin-bottom:15px}.tab{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 12px}.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.input,textarea,select{width:100%;border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--ink);padding:10px 11px}textarea{min-height:110px;resize:vertical}label{display:block;font-size:11px;font-weight:800;color:#625d60;margin:0 0 5px}.form2{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}.form3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.list-item{padding:13px;border:1px solid var(--line);border-radius:13px;background:#fff;margin:8px 0}.list-item h4{margin:0 0 5px}.list-item p{margin:0;color:var(--muted);font-size:12px}.actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+.table{overflow:auto;border:1px solid var(--line);border-radius:13px;background:#fff}table{width:100%;border-collapse:collapse;min-width:850px}th,td{padding:10px;border-bottom:1px solid #eee;text-align:left;font-size:12px}th{font-size:10px;text-transform:uppercase;letter-spacing:.07em;background:#faf8f4;color:#7e7675}
+.kanban{display:grid;grid-template-columns:repeat(4,minmax(235px,1fr));gap:12px;overflow:auto}.kcol{background:#f2eee8;border:1px solid var(--line);border-radius:15px;padding:10px;min-height:310px}.kcol h4{margin:4px 3px 10px}.task{border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px;margin:8px 0}.task h5{margin:0 0 5px}.task p{font-size:11px;color:var(--muted);margin:0}
+.toolgrid,.linkgrid,.guidegrid,.learngrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.toolcard,.linkcard,.guidecard{padding:17px}.toolcard h4,.linkcard h4,.guidecard h4{margin:7px 0 5px}.toolcard p,.linkcard p,.guidecard p{font-size:12px;color:var(--muted);min-height:36px}.cat{font-size:10px;font-weight:900;letter-spacing:.1em;color:var(--accent)}
+.jobfilters{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:9px}.jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.job{padding:17px}.job h3{font-size:16px;margin:5px 0}.job .company{font-size:12px;color:var(--muted)}.jobdesc{font-size:12px;color:#5e595b;line-height:1.5;margin:10px 0;max-height:58px;overflow:hidden}.jobmeta{display:flex;gap:6px;flex-wrap:wrap;margin:9px 0}.source{font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+.livebar{padding:12px 14px;background:#eef7f0;border:1px solid #cfe3d5;border-radius:13px;color:#315b40;margin-bottom:13px}
+.empty{text-align:center;padding:30px;color:var(--muted)}
+.modalbg{position:fixed;inset:0;background:rgba(34,30,31,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:17px}.modal{width:min(800px,96vw);max-height:90vh;overflow:auto;background:#fff;border-radius:19px;padding:21px;box-shadow:0 30px 90px rgba(0,0,0,.2)}.x{float:right;border:0;background:none;font-size:22px}
+.commandbg{position:fixed;inset:0;background:rgba(34,30,31,.45);z-index:110;display:flex;justify-content:center;align-items:flex-start;padding-top:8vh}.command{width:min(720px,94vw);background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.2)}.command input{width:100%;padding:17px;border:0;border-bottom:1px solid var(--line);font-size:17px}.cmdresults{max-height:62vh;overflow:auto}.cmditem{padding:12px 16px;border-bottom:1px solid #eee;cursor:pointer}.cmditem:hover{background:#faf7f2}
+.toast{position:fixed;right:18px;bottom:18px;background:#272427;color:#fff;padding:11px 14px;border-radius:11px;z-index:150}
+.focus{position:fixed;right:17px;top:85px;width:300px;background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px;box-shadow:var(--shadow);z-index:70}.clock{font-size:42px;font-weight:900;text-align:center;margin:14px}
+.progress{height:7px;background:#e8e2db;border-radius:99px;overflow:hidden}.progress span{display:block;height:100%;background:var(--accent)}
+hr{border:0;border-top:1px solid var(--line);margin:17px 0}
+.sheet{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));overflow:auto;border:1px solid var(--line);border-radius:12px}.cell{min-width:120px;border-right:1px solid #eee;border-bottom:1px solid #eee;padding:7px}.cell input{border:0;width:100%;background:transparent;outline:none}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}.day{min-height:88px;border:1px solid var(--line);border-radius:10px;padding:6px;background:#fff}.day strong{font-size:11px}.eventdot{font-size:10px;padding:3px 5px;border-radius:6px;background:var(--accent2);margin-top:4px}
+.preview{border:1px dashed var(--line);border-radius:14px;padding:15px;margin-top:12px;background:#fff}
+.phone{width:220px;height:430px;border:10px solid #222;border-radius:34px;margin:10px auto;background:#fff;overflow:hidden;display:grid;place-items:center}.phone img{width:100%;height:100%;object-fit:cover}
+#canvasPreview{max-width:100%;border:1px solid var(--line);border-radius:12px}
+@media(max-width:1150px){.hero{grid-template-columns:1fr}.c3,.c4{grid-column:span 6}.toolgrid,.linkgrid,.guidegrid,.learngrid{grid-template-columns:repeat(2,1fr)}.jobfilters{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:780px){.app{grid-template-columns:1fr}.sidebar{position:fixed;left:-295px;width:275px;transition:.2s}.sidebar.open{left:0;box-shadow:20px 0 50px rgba(0,0,0,.18)}.mobile{display:block}.top{height:65px;padding:0 12px}.top button span{display:none}.content{padding:14px}.hero h2{font-size:28px}.grid{grid-template-columns:1fr}.c3,.c4,.c5,.c6,.c7,.c8,.c12{grid-column:auto}.toolgrid,.linkgrid,.guidegrid,.learngrid,.jobs{grid-template-columns:1fr}.form2,.form3,.jobfilters{grid-template-columns:1fr}.kanban{grid-template-columns:repeat(4,260px)}.calendar-grid{grid-template-columns:repeat(7,90px);overflow:auto}}
+
+body.dark{--bg:#181719;--panel:#222024;--panel2:#2b282e;--ink:#f1edf1;--muted:#aaa1aa;--line:#3b373e;--shadow:0 10px 28px rgba(0,0,0,.25)}
+body.cool{--bg:#f2f5f6;--panel:#ffffff;--panel2:#e9eef0;--line:#d5dde0}
+body.blush{--bg:#faf2f3;--panel:#fffafb;--panel2:#f3e6e8;--line:#e6d3d7}
+body.compact .pad{padding:15px} body.reduced *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+.roomlayout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px}.roomlist{max-height:650px;overflow:auto}.roomitem{padding:12px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--panel);cursor:pointer}.roomitem.active{border-color:var(--accent);background:var(--surface-2)}.chatbox{display:flex;flex-direction:column;min-height:610px}.messages{flex:1;overflow:auto;max-height:460px}.message{padding:10px 12px;border:1px solid var(--line);border-radius:13px;margin:8px 0;background:var(--panel2)}.message.mine{border-left:3px solid var(--accent)}.message.pinned{border-color:var(--warn)}
+.vaultgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.doccard{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:14px}.docmeta{font-size:10px;color:var(--muted);word-break:break-word}.fitgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}.fitmetric{border:1px solid var(--line);border-radius:12px;padding:11px;background:var(--panel)}.fitmetric strong{font-size:22px;display:block}.evidence{border-left:3px solid var(--accent);padding:9px 11px;background:var(--surface-2);border-radius:0 10px 10px 0;margin:7px 0;font-size:12px}.kitarea{min-height:260px;line-height:1.55}
+.drawerbg{position:fixed;inset:0;background:rgba(25,22,25,.35);z-index:80}.assistant{position:fixed;right:0;top:0;bottom:0;width:min(480px,96vw);z-index:90;background:var(--panel);border-left:1px solid var(--line);box-shadow:-20px 0 60px rgba(0,0,0,.18);padding:18px;overflow:auto}.assistant-output{min-height:310px;white-space:pre-wrap;line-height:1.6}
+.setting-row{display:grid;grid-template-columns:220px 1fr;gap:15px;padding:14px 0;border-bottom:1px solid var(--line)}.setting-row h4{margin:0}.setting-row p{margin:3px 0;color:var(--muted);font-size:12px}.step{display:flex;gap:9px;align-items:flex-start;padding:9px;border:1px solid var(--line);border-radius:10px;margin:7px 0;background:var(--panel)}.rubric{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.quizopt{display:block;padding:9px;border:1px solid var(--line);border-radius:10px;margin:7px 0}.projectgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px}.projectcard{padding:17px}
+@media(max-width:780px){.roomlayout{grid-template-columns:1fr}.roomlist{max-height:230px}.vaultgrid,.projectgrid,.fitgrid,.rubric{grid-template-columns:1fr}.setting-row{grid-template-columns:1fr}}
+
+
+.manual-analyzer{border:2px solid var(--accent);box-shadow:0 12px 34px color-mix(in srgb,var(--accent) 12%,transparent)}
+.verdict{font-size:24px;font-weight:900;margin:4px 0}
+.verdict.good{color:var(--good)}.verdict.warn{color:var(--warn)}.verdict.bad{color:var(--bad)}
+.analysis-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.analysis-box{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel)}
+.analysis-box h4{margin:0 0 8px}
+.requirement{padding:7px 9px;border:1px solid var(--line);border-radius:9px;margin:6px 0;font-size:12px}
+.requirement.hit{border-left:3px solid var(--good)}.requirement.miss{border-left:3px solid var(--warn)}
+@media(max-width:780px){.analysis-cols{grid-template-columns:1fr}}
+</style>
+
+<script src="https://unpkg.com/mammoth@1.11.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar" id="sidebar">
+  <div class="brand"><div class="brandmark">FD</div><div><h1>Freelance Desk</h1><p>Your free freelancer workspace</p></div></div>
+  <div class="navlabel">START</div>
+  <button class="nav active" data-page="home"><span class="ic">⌂</span>Home</button>
+  <button class="nav" data-page="desk"><span class="ic">▦</span>Desk</button>
+  <button class="nav" data-page="community"><span class="ic">◎</span>Community & Rooms</button>
+  <div class="navlabel">CAREER</div>
+  <button class="nav" data-page="jobs"><span class="ic">⌕</span>Find Work</button>
+  <button class="nav" data-page="tracker"><span class="ic">✓</span>Application Tracker</button>
+  <button class="nav" data-page="portfolio"><span class="ic">▣</span>Portfolio Lab</button>
+  <div class="navlabel">WORK & SKILLS</div>
+  <button class="nav" data-page="tools"><span class="ic">⌁</span>Tools</button>
+  <button class="nav" data-page="workflows"><span class="ic">↻</span>Workflows</button>
+  <button class="nav" data-page="guides"><span class="ic">☷</span>Guides</button>
+  <button class="nav" data-page="learn"><span class="ic">◫</span>Learn</button>
+  <div class="navlabel">PERSONAL</div>
+  <button class="nav" data-page="settings"><span class="ic">⚙</span>Settings</button>
+  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Local data stays in your browser unless you export it.</div>
+</aside>
+
+<main class="main">
+<header class="top">
+  <div class="top-left"><button class="mobile" id="menu">☰</button><strong id="pageTitle">Home</strong></div>
+  <div class="top-actions">
+    <button id="search">⌕ <span>Search</span></button>
+    <button id="focusBtn">◷ <span>Focus</span></button>
+    <button id="assistantBtn">✦ <span>DeskMate</span></button>
+    <button id="themeBtn" title="Toggle light/dark theme">☼ <span>Theme</span></button>
+    <button id="addBtn">＋ <span>Quick Add</span></button>
+  </div>
+</header>
+<div class="content" id="content"></div>
+</main>
+</div>
+<div id="modalRoot"></div>
+<div id="commandRoot"></div>
+<div id="assistantRoot"></div>
+<div id="focus" class="focus hidden"></div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const KEY="freelance_desk_v4";
+const JOB_CACHE_KEY="freelance_desk_livejobs_v1";
+const DAY=24*60*60*1000;
+const today=()=>new Date().toISOString().slice(0,10);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
+const strip=s=>{const d=document.createElement("div");d.innerHTML=s||"";return (d.textContent||"").replace(/\s+/g," ").trim()};
+const fmtDate=s=>{try{return new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date(s))}catch{return s||"—"}};
+const state={
+ page:"home",deskTab:"tasks",communityTab:"Rooms",activeRoom:null,toolCat:"All",workflowCat:"All",guideCat:"All",learnCat:"All",portfolioCat:"All",settingsTab:"Profile",jobSource:"All",jobView:"All Jobs",liveJobs:[],liveStatus:"",sourceHealth:{},
+ data:{
+  profile:{name:"Friend",title:"Freelancer / Virtual Assistant",niches:["General VA"],level:"Building Experience",timezone:"Asia/Manila",location:"Philippines / Worldwide",skills:"Google Workspace, Communication, Research",portfolioUrl:""},
+  settings:{theme:"system",accent:"#5b4c78",background:"warm",fontScale:1,density:"comfortable",reducedMotion:false,startPage:"home",currency:"USD",workStart:"09:00",workEnd:"17:00",jobKeywords:"",jobLocation:"",remoteOnly:false,beginnerPreferred:true,salaryPreferred:false,blockedKeywords:""},
+  tasks:[],events:[],links:[],snippets:[],clients:[],invoices:[],notes:[],sheet:Array.from({length:25},()=>""),jobs:[],community:[],externalCommunities:[],rooms:[],profileDocs:[],applicationKits:[],customProjects:[],
+  learning:{},learningProgress:{},portfolio:{},portfolioProgress:{},favorites:[],focusSessions:[],preferences:{}
+ }
+};
+
+const pages={home:"Home",desk:"Desk",community:"Community & Rooms",jobs:"Find Work",tracker:"Application Tracker",portfolio:"Portfolio Lab",tools:"Tools",workflows:"Workflows",guides:"Guides",learn:"Learn",settings:"Settings"};
+
+const jobSources=[
+ ["OnlineJobs.ph","https://www.onlinejobs.ph/jobseekers/jobsearch","Philippines-focused remote work marketplace."],
+ ["LinkedIn Jobs","https://www.linkedin.com/jobs/","Professional jobs and direct employer listings."],
+ ["JobStreet Philippines","https://ph.jobstreet.com/","Philippine local and remote vacancies."],
+ ["Indeed Philippines","https://ph.indeed.com/","Large job search engine with many industries."],
+ ["Upwork","https://www.upwork.com/nx/search/jobs/","Freelance projects and contract work."],
+ ["Remote OK","https://remoteok.com/","Remote jobs across tech, support, marketing and more."],
+ ["We Work Remotely","https://weworkremotely.com/","Remote roles from international employers."],
+ ["VirtualStaff.ph","https://www.virtualstaff.ph/jobs","Remote work for Filipino professionals."],
+ ["VA Workers PH","https://vaworkersph.com/","Virtual assistant and remote-work opportunities for Filipino job seekers."],
+ ["Wellfound","https://wellfound.com/jobs","Startup roles and remote opportunities."],
+ ["FlexJobs","https://www.flexjobs.com/","Curated remote/flexible jobs; some services may be paid, so use only the free browseable resources."],
+ ["PhilJobNet","https://philjobnet.gov.ph/","Official Philippine government job matching and labor-market portal."],
+ ["Remotive","https://remotive.com/remote-jobs","Remote jobs across many professional categories; public API listings are delayed by about 24 hours."]
+];
+
+const toolDefs=[
+ {n:"Word & Character Counter",c:"Writing",d:"Count words, characters, sentences and paragraphs.",a:"word"},
+ {n:"Text Cleaner",c:"Writing",d:"Remove extra spaces and excessive blank lines.",a:"clean"},
+ {n:"Case Converter",c:"Writing",d:"UPPERCASE, lowercase, Title Case and sentence case.",a:"case"},
+ {n:"Remove Duplicate Lines",c:"Writing",d:"Deduplicate lists while preserving order.",a:"dedupe"},
+ {n:"Sort Lines",c:"Writing",d:"Alphabetically sort a list.",a:"sort"},
+ {n:"Slug Generator",c:"Writing",d:"Turn a title into a clean URL slug.",a:"slug"},
+ {n:"JSON Formatter + Validator",c:"Data",d:"Pretty-print and validate JSON locally.",a:"json"},
+ {n:"CSV → JSON",c:"Data",d:"Convert a basic CSV file/text into JSON.",a:"csvjson"},
+ {n:"JSON → CSV",c:"Data",d:"Convert an array of flat JSON objects to CSV.",a:"jsoncsv"},
+ {n:"URL Encoder / Decoder",c:"Data",d:"Encode or decode URL-safe text.",a:"url"},
+ {n:"Base64 Encoder / Decoder",c:"Data",d:"Encode/decode text locally in-browser.",a:"base64"},
+ {n:"Timestamp Converter",c:"Data",d:"Convert Unix timestamps and dates.",a:"timestamp"},
+ {n:"Password Generator",c:"Utilities",d:"Generate a random strong password locally.",a:"password"},
+ {n:"Random Picker",c:"Utilities",d:"Choose one random item from a list.",a:"random"},
+ {n:"Date Difference",c:"Utilities",d:"Calculate the number of days between dates.",a:"datediff"},
+ {n:"Rate Calculator",c:"Utilities",d:"Estimate hourly, weekly and monthly earnings.",a:"rate"},
+ {n:"Currency Converter",c:"Utilities",d:"Convert currencies using free daily reference exchange rates.",a:"currency"},
+ {n:"Conversion Rate Calculator",c:"Data",d:"Calculate conversion rate from visitors/leads and completed conversions.",a:"conversion"},
+ {n:"World Clock",c:"Utilities",d:"Check Manila, New York, London and Sydney time.",a:"timezone"},
+ {n:"Pomodoro Focus Timer",c:"Utilities",d:"Run 25 or 50-minute focus sessions.",a:"focus"},
+ {n:"Typing Test",c:"Utilities",d:"One-minute local typing speed practice.",a:"typing"},
+ {n:"Color Toolkit",c:"Design",d:"Pick a color and copy HEX/RGB values.",a:"color"},
+ {n:"Gradient Generator",c:"Design",d:"Build and copy CSS gradients.",a:"gradient"},
+ {n:"Social Post Maker",c:"Design",d:"Create a simple square graphic and download PNG.",a:"social"},
+ {n:"Phone Mockup",c:"Design",d:"Upload an image and preview it inside a phone frame.",a:"phone"},
+ {n:"Image Resizer / Compressor",c:"Images",d:"Resize an uploaded image and download a compressed copy.",a:"image"},
+ {n:"Favicon Maker",c:"Images",d:"Create a simple 64×64 PNG favicon from text initials.",a:"favicon"},
+ {n:"Meeting Agenda Builder",c:"Work",d:"Create a reusable meeting agenda.",a:"agenda"},
+ {n:"SOP Builder",c:"Work",d:"Document a repeatable process.",a:"sop"},
+ {n:"EOD Report Builder",c:"Work",d:"Create a clean daily work update.",a:"eod"},
+ {n:"Client Follow-Up Builder",c:"Work",d:"Draft a concise manual follow-up.",a:"followup"},
+ {n:"1-3-1 Decision Builder",c:"Work",d:"Structure one problem, three options and one recommendation.",a:"decision"},
+ {n:"Job Fit Analyzer",c:"Career",d:"Rule-based keyword and requirement analysis.",a:"jobfit"},
+ {n:"Salary / Negotiation Notes",c:"Career",d:"Structure rate range, evidence and negotiation points.",a:"negotiation"},
+ {n:"Interview Prep Sheet",c:"Career",d:"Generate a reusable prep checklist.",a:"interview"},
+ {n:"Resume Checklist",c:"Career",d:"Review essential ATS-friendly resume basics.",a:"resume"}
+];
+
+const workflows=[
+ {id:"wf-inbox",cat:"Executive & Admin",title:"Inbox Triage",scenario:"A founder has 75 unread emails and cannot review everything personally.",tools:["Gmail / Outlook","Labels","Task tracker"],inputs:["Inbox access","Priority rules","VIP contacts"],steps:["Scan sender + subject","Classify urgent/important/routine","Handle what is authorized","Draft items requiring approval","Escalate true risks","Create follow-up tasks","Close or archive resolved threads"],qa:["No urgent thread left unflagged","No unauthorized send","Follow-ups have owners/dates"],example:"Investor email → flag urgent + prepare summary. Newsletter → archive. Client scheduling request → draft available times."},
+ {id:"wf-meeting",cat:"Executive & Admin",title:"Meeting Management",scenario:"A weekly leadership meeting needs consistent preparation and follow-through.",tools:["Calendar","Docs","Task tracker"],inputs:["Attendee list","Goal","Prior notes"],steps:["Confirm purpose","Gather agenda items","Prepare brief","Check conflicts","Send agenda","Capture decisions","Assign owners and dates","Follow up"],qa:["Clear objective","Every action has owner","Decisions documented"],example:"Monday meeting brief prepared Friday; action log updated immediately after meeting."},
+ {id:"wf-smm",cat:"Social Media",title:"Content Production",scenario:"A client needs three platforms managed without duplicated chaos.",tools:["Canva","Scheduler","Content tracker"],inputs:["Brand guide","Content pillars","Offers","Analytics"],steps:["Research audience/questions","Draft hooks","Create captions","Design assets","Quality check","Client approval","Schedule","Engage","Report"],qa:["Correct CTA","No broken links","Brand-consistent","Platform format correct"],example:"One webinar insight becomes a LinkedIn post, carousel, short video and email snippet."},
+ {id:"wf-lead",cat:"Lead Generation",title:"Prospecting & Qualification",scenario:"A service business needs qualified prospects, not random contacts.",tools:["Search","Sheets/CRM"],inputs:["ICP","Geography","Company size","Exclusions"],steps:["Define ICP","Source prospects","Verify relevance","Capture contact/source","Score fit","Remove duplicates","Send qualified leads to CRM","Track outreach"],qa:["Source URL saved","No duplicate leads","ICP criteria met"],example:"US dental practices with 5–20 staff → research owner/manager → qualify against service need."},
+ {id:"wf-recruit",cat:"Recruitment",title:"Candidate Pipeline",scenario:"A small company needs organized hiring support.",tools:["ATS/Sheet","Calendar","Email"],inputs:["Job brief","Must-haves","Screening questions"],steps:["Publish approved role","Source candidates","Screen must-haves","Log notes","Shortlist","Schedule interview","Collect feedback","Update status"],qa:["Job-relevant screening","Status always current","Interview details confirmed"],example:"20 applicants → 8 pass must-haves → 4 shortlisted → 3 interviews scheduled."},
+ {id:"wf-reva",cat:"Real Estate",title:"Transaction Support",scenario:"A transaction has deadlines, documents and multiple stakeholders.",tools:["CRM","Checklist","Calendar"],inputs:["Transaction dates","Parties","Required documents"],steps:["Create transaction checklist","Record milestones","Track documents","Flag missing items","Remind stakeholders","Update status","Prepare closing summary"],qa:["Deadlines visible","No legal advice","Missing docs flagged early"],example:"Inspection due Friday → reminder Tuesday → missing report escalated Thursday morning."},
+ {id:"wf-ecom",cat:"E-commerce",title:"Order Issue Resolution",scenario:"A customer reports an order that arrived damaged.",tools:["Store platform","Helpdesk","Shipping portal"],inputs:["Order number","Policy","Evidence"],steps:["Verify order","Classify issue","Check policy","Offer authorized options","Process chosen resolution","Update notes","Confirm customer satisfaction"],qa:["Policy followed","No duplicate refund","Tracking/notes saved"],example:"Damaged order → photo verified → replacement approved → tracking sent."},
+ {id:"wf-ops",cat:"Operations",title:"Recurring Process Improvement",scenario:"A weekly report is late every week.",tools:["Process map","Task tracker","SOP"],inputs:["Current steps","Owners","Timing"],steps:["Observe current process","Identify bottleneck","Find root cause","Remove unnecessary steps","Assign clear owner","Create checklist","Pilot improved process","Measure result","Standardize"],qa:["Root cause addressed","Definition of done clear","Owner + deadline defined"],example:"Report delay caused by waiting for three manual exports → move request deadline earlier and automate one export."},
+ {id:"wf-pm",cat:"Project Management",title:"Project Delivery",scenario:"A client project has multiple deliverables and dependencies.",tools:["ClickUp/Trello/Asana","Docs","Calendar"],inputs:["Scope","Deadline","Owners","Dependencies"],steps:["Break scope into deliverables","Define owners","Set dates","Map dependencies","Track progress","Flag risks","Review quality","Client handoff","Close retrospective"],qa:["Scope controlled","Risks visible","No ownerless tasks"],example:"Website launch split into copy, design, build, QA, approval and publish."},
+ {id:"wf-cs",cat:"Customer Support",title:"Ticket Handling",scenario:"A support inbox needs fast and consistent replies.",tools:["Helpdesk","Knowledge base","CRM"],inputs:["Ticket","Customer history","Policy"],steps:["Read full context","Categorize","Resolve known issue","Ask only needed questions","Escalate exceptions","Confirm resolution","Tag and close"],qa:["Correct policy","Professional tone","Resolution confirmed"],example:"Password issue → safe reset instructions → confirm access → close."},
+ {id:"wf-community",cat:"Community",title:"Community Management",scenario:"A community has questions, rule violations and member support needs.",tools:["Community platform","Rules","Escalation log"],inputs:["Community rules","Admin contacts","Content calendar"],steps:["Monitor new activity","Welcome/respond","Answer common questions","Escalate sensitive issues","Moderate rules fairly","Document repeat issues","Report trends"],qa:["Rules applied consistently","No confidential details exposed","Escalations documented"],example:"Member posts prohibited promotion → redirect or remove according to the exact rule and note the action."},
+ {id:"wf-ai",cat:"AI & Automation",title:"Manual → AI-Assisted Workflow",scenario:"A repetitive admin task takes 45 minutes daily.",tools:["AI assistant","Automation tool","Human QA"],inputs:["Current process","Allowed data","Desired output"],steps:["Map manual steps","Separate judgment from repetition","Choose AI-safe step","Create prompt/template","Test with non-sensitive data","Add human review","Measure time saved","Document fallback"],qa:["No sensitive data misuse","Human approval where needed","Output checked"],example:"Meeting notes → AI draft summary → human verifies decisions/owners → final brief."}
+];
+
+const guideData=[
+ {c:"Freelancing",t:"Starting as a Freelancer",s:"Start with one service, one target problem, a simple proof-of-skill sample, and a consistent application routine.",b:`<h3>Starting as a Freelancer</h3><ol><li>Choose a service you can currently deliver.</li><li>Define the problem it solves.</li><li>Create 1–3 clearly labeled simulated samples if you have no client work yet.</li><li>Prepare a concise resume/profile.</li><li>Build a daily job-search routine.</li><li>Track every application and follow-up.</li></ol><p>Do not fabricate clients, testimonials, or outcomes.</p>`},
+ {c:"Freelancing",t:"Choosing a Niche",s:"Use skills + market demand + work you can sustain, not trend-chasing alone.",b:`<h3>Choosing a Niche</h3><p>Compare three things: what you can do, what businesses repeatedly need, and what kind of work you can realistically perform every week.</p><p>You may select multiple niches. Generalists can still specialize later.</p>`},
+ {c:"Career",t:"Job Post Red Flags",s:"Review payment, scope, identity, requests for money, and risky data collection.",b:`<h3>Job Post Red Flags</h3><ul><li>Pay-to-apply or mandatory purchases.</li><li>Requests for banking credentials or sensitive IDs unusually early.</li><li>Unpaid large “test projects.”</li><li>Vague company identity plus urgent pressure.</li><li>Role combines several full-time jobs for one very low rate.</li></ul><p>A warning is not proof of a scam; verify independently.</p>`},
+ {c:"Career",t:"Interview Prep",s:"Research the company, role, needs, tools, and prepare examples plus smart questions.",b:`<h3>Interview Prep</h3><ol><li>Review company, product/service, and job description.</li><li>Map requirements to real examples from your background.</li><li>Prepare questions about priorities, workflow, success measures and reporting.</li><li>Be ready to explain gaps without inventing experience.</li></ol>`},
+ {c:"Career",t:"Rate Negotiation",s:"Negotiate from scope, schedule, complexity, responsibility and evidence—not desperation.",b:`<h3>Rate Negotiation</h3><p>When a range is given, understand the responsibility level and your match before naming a number. “Negotiable” should only be treated as confirmed if the employer says so.</p><p>Useful signals: broad range, DOE/depending on experience, contractor terms, or “competitive compensation.” These indicate possible room—not a guarantee.</p>`},
+ {c:"Clients",t:"Client Communication Scripts",s:"Professional starting points for follow-ups, clarifications, reschedules and boundaries.",b:`<h3>Client Communication Scripts</h3><p><strong>Clarification:</strong> “To make sure I complete this correctly, could you confirm [specific point]?”</p><p><strong>Follow-up:</strong> “Following up on [item]. Once confirmed, I can proceed with [next action].”</p><p><strong>Boundary:</strong> “I can support that. It sits outside our current scope, so I’d like to confirm priority and any scope adjustment before proceeding.”</p>`},
+ {c:"Clients",t:"Discovery Call Basics",s:"Understand the problem, current workflow, urgency, ownership and desired outcome.",b:`<h3>Discovery Call Basics</h3><p>Ask about the business problem before pitching tasks. Useful questions: What is consuming the most time? What keeps getting missed? What does a good outcome look like? What needs approval versus independent ownership?</p>`},
+ {c:"Safety",t:"Freelancer Security Basics",s:"Protect passwords, client files, devices and access.",b:`<h3>Security Basics</h3><ul><li>Use unique passwords and MFA.</li><li>Never place API keys in public repositories.</li><li>Use least-privilege access.</li><li>Separate personal and client files.</li><li>Confirm before sharing sensitive documents.</li></ul>`},
+ {c:"Philippines",t:"Philippine Freelancer Official Links",s:"Use official government sites for current BIR, SSS, Pag-IBIG and PhilHealth requirements.",b:`<h3>Official PH References</h3><p>General educational directory only. Always verify current requirements directly with the agency.</p><div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://www.bir.gov.ph/">BIR</a><a class="btn" target="_blank" rel="noopener" href="https://www.sss.gov.ph/">SSS</a><a class="btn" target="_blank" rel="noopener" href="https://www.pagibigfund.gov.ph/">Pag-IBIG</a><a class="btn" target="_blank" rel="noopener" href="https://www.philhealth.gov.ph/">PhilHealth</a></div>`},
+ {c:"Portfolio",t:"Build a Portfolio Without Clients",s:"Use simulated projects based on realistic tasks and label them honestly.",b:`<h3>Portfolio Without Clients</h3><p>Create realistic simulations: brief → process → output → self-review. Clearly label the work “SIMULATED PORTFOLIO PROJECT.” Never invent a client name or testimonial.</p>`}
+];
+
+const learnTracks=[
+ {id:"l-freelance",cat:"Core",title:"Freelancing Fundamentals",duration:"20 min",objective:"Understand service, proof, client acquisition and delivery as one system.",content:["A freelance offer is a business problem you can reliably help solve—not just a list of tools.","Proof can come from paid work, previous employment, internships or clearly labeled simulated projects.","A job-search system needs sourcing, tracking, follow-up and review."],example:"Instead of ‘I know Google Workspace,’ show a mock inbox/calendar system that demonstrates how you would organize work.",practice:"Write one sentence: I help [client type] with [problem] through [service].",quiz:{q:"Which is strongest proof for a beginner with no clients?",opts:["Invented testimonial","Clearly labeled simulated project","A long list of software"],a:1,why:"A realistic, honestly labeled simulation demonstrates skill without fabricating experience."}},
+ {id:"l-client",cat:"Core",title:"Client Communication",duration:"18 min",objective:"Write clear updates that reduce ambiguity and protect trust.",content:["Lead with the needed decision or status.","Separate facts, risks and recommendations.","Close the loop with an owner, next step and timing."],example:"Instead of ‘Still working on it,’ say: ‘Draft is complete. I’m waiting on the pricing sheet; if received by 2 PM, final delivery remains on schedule.’",practice:"Rewrite one vague status update into a decision-ready update.",quiz:{q:"A strong status update should usually include:",opts:["Only what you completed","Status + blocker/decision + next step","A long explanation of everything you did"],a:1,why:"Decision-ready updates make the next action clear."}},
+ {id:"l-gws",cat:"Tools",title:"Google Workspace for Remote Work",duration:"25 min",objective:"Use Drive, Docs, Sheets, Gmail and Calendar as a connected system.",content:["Drive structure prevents file hunting.","Docs/Sheets should use consistent naming and ownership.","Calendar events need purpose, attendees, time zone and buffers."],example:"Client folder → 01_Admin, 02_Meetings, 03_Projects, 04_Reports, 99_Archive.",practice:"Create a sample client folder map and naming convention.",quiz:{q:"Why use consistent file names?",opts:["They look fancy","They reduce retrieval errors and confusion","Google requires them"],a:1,why:"Naming systems reduce search time and version mistakes."}},
+ {id:"l-ea",cat:"Executive/Admin",title:"Executive Support Basics",duration:"25 min",objective:"Move from task-taking toward prioritization, judgment and follow-through.",content:["Executive support protects time, attention and decision space.","Not everything urgent is equally important.","A good assistant surfaces risks before they become surprises."],example:"Calendar conflict → identify stakeholder importance, flexibility, deadlines and decision owner before moving meetings.",practice:"Use the 1-3-1 tool on a scheduling conflict.",quiz:{q:"What most distinguishes higher-level executive support?",opts:["More apps","Judgment and ownership","Sending more emails"],a:1,why:"The work is defined by judgment, prioritization and follow-through."}},
+ {id:"l-smm",cat:"Social Media",title:"Social Media Workflow",duration:"22 min",objective:"Turn strategy into repeatable creation, approval and reporting.",content:["Content pillars connect audience problems to business goals.","Repurposing is adaptation—not copying identical posts everywhere.","Reporting should connect activity to useful signals."],example:"One client FAQ → Reel, carousel, LinkedIn text post and email tip.",practice:"Choose one FAQ and create four platform-specific angles.",quiz:{q:"Repurposing means:",opts:["Posting identical content everywhere","Adapting one idea to different formats/platforms","Only reposting old content"],a:1,why:"The core idea can stay while format and framing change."}},
+ {id:"l-lead",cat:"Lead Generation",title:"Lead Qualification",duration:"20 min",objective:"Build relevant lead lists instead of chasing volume.",content:["Start with an ICP.","Save source evidence.","Separate sourced, verified, qualified and contacted stages."],example:"A qualified lead meets geography, size, industry and decision-maker criteria.",practice:"Define five ICP fields for one service.",quiz:{q:"What should happen before outreach?",opts:["Qualify the prospect","Send the same message to everyone","Guess the email"],a:0,why:"Qualification prevents wasted outreach and poor-fit leads."}},
+ {id:"l-recruit",cat:"Recruitment",title:"Recruitment Admin Basics",duration:"20 min",objective:"Support sourcing and scheduling with a clean candidate pipeline.",content:["Use job requirements consistently.","Do not introduce discriminatory criteria.","Every candidate should have a current stage and notes."],example:"Applied → Screened → Shortlisted → Interview → Decision.",practice:"Build a five-stage candidate tracker.",quiz:{q:"Screening criteria should primarily come from:",opts:["Personal preference","Approved job requirements","Social media popularity"],a:1,why:"Screening should be job-relevant and consistent."}},
+ {id:"l-reva",cat:"Real Estate",title:"Real Estate VA Foundations",duration:"22 min",objective:"Understand lead, listing, transaction and deadline support without crossing legal boundaries.",content:["Track dates and documents meticulously.","Escalate missing items early.","Do not provide legal advice or negotiate when not authorized."],example:"Inspection deadline is tracked with reminders and a missing report escalated before cutoff.",practice:"Create a mock transaction milestone checklist.",quiz:{q:"What should a REVA do with a legal question?",opts:["Give legal advice","Escalate to the licensed/authorized professional","Guess based on past transactions"],a:1,why:"Legal decisions belong to appropriately authorized professionals."}},
+ {id:"l-ecom",cat:"E-commerce",title:"E-commerce Support Basics",duration:"18 min",objective:"Handle order, customer and product workflows consistently.",content:["Order issues need verification before action.","Returns/refunds must follow approved policy.","Document every resolution."],example:"Damaged order → verify order/photos → apply policy → replace/refund → confirm.",practice:"Write a five-step damaged-order SOP.",quiz:{q:"Before issuing a refund, first:",opts:["Verify order and policy","Refund immediately","Ask for a review"],a:0,why:"Verification prevents errors and policy breaches."}},
+ {id:"l-cs",cat:"Customer Support",title:"Customer Support Triage",duration:"18 min",objective:"Resolve common issues quickly while escalating exceptions.",content:["Read full context before replying.","Use knowledge base/policy for consistency.","Confirm resolution before closing."],example:"Login issue → verify safe troubleshooting steps → reset path → confirm access.",practice:"Create three ticket categories and escalation rules.",quiz:{q:"A ticket should be closed when:",opts:["You sent any reply","The issue is resolved or next step confirmed","It is old"],a:1,why:"Closure should reflect resolution or a confirmed next step."}},
+ {id:"l-pm",cat:"Project Management",title:"Project Coordination",duration:"25 min",objective:"Turn scope into owners, dates, dependencies and visible risk.",content:["Every deliverable needs an owner.","Dependencies should be visible before they block work.","Risks should be raised early with options."],example:"Website copy must be approved before final page QA; this dependency is tracked.",practice:"Break a sample website project into eight tasks.",quiz:{q:"Which task is most dangerous?",opts:["A task with an owner","A task with no owner or hidden dependency","A completed task"],a:1,why:"Ownerless and hidden-dependent tasks are common failure points."}},
+ {id:"l-ops",cat:"Operations",title:"Process Improvement",duration:"24 min",objective:"Identify recurring waste and convert fixes into standards.",content:["Measure the current process before changing it.","Fix root causes rather than repeatedly rescuing symptoms.","Document the improved process after testing."],example:"Late weekly report → find wait step → change data-request timing → checklist → measure on-time rate.",practice:"Choose one recurring annoyance and run a 5-Whys analysis.",quiz:{q:"A strong process improvement should:",opts:["Add more steps automatically","Address a root cause and measure the result","Depend on memory"],a:1,why:"The goal is a repeatable improvement, not more process for its own sake."}},
+ {id:"l-ai",cat:"AI",title:"AI for Freelancers",duration:"25 min",objective:"Use AI to accelerate drafts while keeping human judgment and privacy.",content:["Do not paste sensitive client data without authorization.","Give clear context, task and output requirements.","Verify facts, names, numbers and decisions before using AI output."],example:"Meeting notes → AI draft summary → human checks decisions/owners → final brief.",practice:"Use DeskMate to create an SOP draft, then improve it manually.",quiz:{q:"Which step should never be skipped?",opts:["Human verification","Adding emojis","Using the longest prompt"],a:0,why:"AI output can be wrong or incomplete; important work needs review."}},
+ {id:"l-security",cat:"Core",title:"Remote Work Security",duration:"16 min",objective:"Reduce avoidable account and data risks.",content:["Use MFA and unique passwords.","Never expose API keys in frontend/public repositories.","Remove old access when work ends."],example:"Client shares admin access → request a separate user account with only needed permissions.",practice:"Audit three accounts for MFA and unique passwords.",quiz:{q:"Best access principle:",opts:["Everyone gets admin","Least privilege","Share one team password"],a:1,why:"Users should receive only the access needed for their role."}},
+ {id:"l-job",cat:"Career",title:"Job Search System",duration:"20 min",objective:"Treat job hunting as a measurable pipeline.",content:["Source across several channels.","Track application opened vs actually submitted.","Measure reply, interview and offer conversion rates."],example:"30 submitted applications → 6 replies = 20% reply rate; use results to improve targeting.",practice:"Set a weekly application goal and follow-up rule.",quiz:{q:"Why track conversion rates?",opts:["To prove you are failing","To identify where the pipeline needs improvement","Because every job guarantees a reply"],a:1,why:"Conversion data shows whether sourcing, applications or interviews need improvement."}}
+];
+
+const portfolio=[
+ {id:"p-ea-inbox",cat:"Executive/Admin",title:"Executive Inbox System",difficulty:"Intermediate",time:"90 min",brief:"A founder receives 100+ emails daily and misses important requests.",objective:"Design an inbox triage and follow-up system.",deliverables:["Label/category map","Priority rules","Escalation guide","3 reply templates","Daily inbox brief"],steps:["Define email categories","Create priority rules","Write response/approval boundaries","Design follow-up tracker","Draft sample daily brief","Run self-review"],tools:["Gmail mockup or Docs","Sheets/Notion","Canva optional"],example:"VIP / Client / Urgent / Finance / Team / Newsletter; urgent items summarized in a morning brief.",rubric:["Clear priorities","Realistic boundaries","Easy to use","No fake client claims"]},
+ {id:"p-smm-calendar",cat:"Social Media",title:"30-Day Content System",difficulty:"Intermediate",time:"2–3 hrs",brief:"A small service business posts inconsistently and has no content system.",objective:"Build a 30-day strategy and workflow.",deliverables:["Audience summary","4 content pillars","30-day calendar","5 sample captions","Approval workflow"],steps:["Define audience problem","Create pillars","Map weekly rhythm","Draft hooks","Build approval workflow","Review for repetition"],tools:["Sheets/Notion","Canva"],example:"Education / Proof / Behind-the-scenes / Offer; each week mixes formats and CTAs.",rubric:["Audience relevance","Clear variety","Repurpose-ready","No fabricated results"]},
+ {id:"p-leads",cat:"Lead Generation",title:"Qualified Lead Tracker",difficulty:"Beginner",time:"75 min",brief:"A B2B service needs 30 relevant prospects in one market.",objective:"Show research and qualification quality.",deliverables:["ICP definition","Lead sheet structure","10–30 sample leads using public/mock data","Qualification rules","Outreach status fields"],steps:["Define ICP","Choose fields","Research sample prospects","Document source","Score fit","Deduplicate","Review"],tools:["Google Sheets"],example:"Company / Website / Decision maker / Role / Source / Fit / Notes / Status.",rubric:["Source evidence","No duplicate records","ICP fit","Clean data"]},
+ {id:"p-recruit",cat:"Recruitment",title:"Candidate Pipeline",difficulty:"Beginner",time:"60 min",brief:"A startup needs a transparent candidate tracker.",objective:"Build a fair, organized hiring workflow.",deliverables:["Candidate tracker","Stage definitions","Screening checklist","Interview schedule template"],steps:["Define stages","Build fields","Create screening criteria","Create status rules","Add interview scheduling fields","Review"],tools:["Sheets/Notion"],example:"Applied → Screened → Shortlisted → Interview → Offer/Closed.",rubric:["Job-relevant criteria","Consistent status","No discriminatory fields","Usable layout"]},
+ {id:"p-reva",cat:"Real Estate",title:"Transaction Milestone Tracker",difficulty:"Intermediate",time:"90 min",brief:"A real-estate team needs visibility over deadlines and missing documents.",objective:"Design an admin tracking system without crossing licensed/legal boundaries.",deliverables:["Milestone tracker","Document checklist","Reminder schedule","Risk/escalation column"],steps:["List milestones","Add responsible party","Add due dates","Map documents","Add reminders","Add escalation rule"],tools:["Sheets/ClickUp"],example:"Inspection / appraisal / financing / document receipt / closing prep.",rubric:["Deadlines visible","Clear owner","No legal advice","Missing items easy to spot"]},
+ {id:"p-ecom",cat:"E-commerce",title:"Customer Support SOP Pack",difficulty:"Beginner",time:"75 min",brief:"An online shop handles repetitive order issues inconsistently.",objective:"Create support procedures and replies.",deliverables:["Ticket categories","3 SOPs","5 canned replies","Escalation matrix"],steps:["List common issues","Map policy decisions","Write SOP steps","Create canned replies","Define escalation","QA"],tools:["Docs/Notion"],example:"Damaged order, late shipment, wrong item.",rubric:["Policy-led","Clear tone","Escalation defined","No conflicting steps"]},
+ {id:"p-ops",cat:"Operations",title:"Process Improvement Case Study",difficulty:"Advanced",time:"2–3 hrs",brief:"A weekly recurring process is late and requires too much manual follow-up.",objective:"Analyze and redesign the process.",deliverables:["Current-state map","Root-cause analysis","Future-state workflow","SOP","Measurement plan"],steps:["Map current state","Measure delays","5 Whys","Design improvement","Pilot logic","Write SOP","Define metric"],tools:["Docs","Diagram tool","Sheets"],example:"Weekly report delayed by data dependency → earlier trigger + ownership + automated reminder.",rubric:["Root cause clear","Improvement realistic","Metric defined","Case study explains reasoning"]},
+ {id:"p-pm",cat:"Project Management",title:"Client Project Board",difficulty:"Intermediate",time:"90 min",brief:"A small client project has multiple deliverables and unclear ownership.",objective:"Build a simple delivery system.",deliverables:["Project brief","Task board","Dependency map","Weekly status template","Risk log"],steps:["Define scope","Break deliverables","Assign owners","Set dates","Map dependencies","Add risk/status fields","Create weekly report"],tools:["Trello/ClickUp/Notion"],example:"Website launch with copy, design, build, QA and publish stages.",rubric:["No ownerless task","Dependencies visible","Status useful","Scope controlled"]}
+];
+
+const aiLinks=[
+ ["ChatGPT","https://chatgpt.com/","General writing, reasoning, analysis and assistance."],
+ ["Claude","https://claude.ai/","Writing, code, document work and analysis."],
+ ["Google Gemini","https://gemini.google.com/","Google AI assistant with a free-access option."],
+ ["Google AI Studio","https://aistudio.google.com/","Prototype and build with Gemini; usage availability can vary."],
+ ["NotebookLM","https://notebooklm.google.com/","Source-grounded notes, summaries and study support."],
+ ["Perplexity","https://www.perplexity.ai/","Web research and answer discovery; free access is available with limits."]
+];
+
+function save(){localStorage.setItem(KEY,JSON.stringify(state.data))}
+function load(){try{const r=localStorage.getItem(KEY);if(r)state.data={...state.data,...JSON.parse(r)}}catch(e){}}
+function toast(m){const e=document.getElementById("toast");e.textContent=m;e.classList.remove("hidden");setTimeout(()=>e.classList.add("hidden"),1800)}
+function navigate(p){state.page=p;document.querySelectorAll(".nav").forEach(x=>x.classList.toggle("active",x.dataset.page===p));document.getElementById("pageTitle").textContent=pages[p];document.getElementById("sidebar").classList.remove("open");render()}
+document.addEventListener("click",e=>{const n=e.target.closest(".nav");if(n)navigate(n.dataset.page)});
+
+function greeting(){const h=new Date().getHours();return h<12?"Good morning":h<18?"Good afternoon":"Good evening"}
+function stats(){
+ const d=state.data, t=today();
+ return {todo:d.tasks.filter(x=>x.status!=="DONE").length,due:d.tasks.filter(x=>x.due&&x.due<=t&&x.status!=="DONE").length,apps:d.jobs.filter(x=>x.status==="APPLIED").length,interviews:d.jobs.filter(x=>x.status==="INTERVIEW").length}
+}
+function renderHome(){
+ const s=stats(),p=state.data.profile;
+ return `<div class="hero">
+  <section class="card pad"><div class="eyebrow">Your freelancer workspace</div><h2>${greeting()}, ${esc(p.name)}.</h2><p>Work, jobs, tools, learning, portfolio and community — in one place.</p>
+   <div class="grid" style="margin-top:22px"><div class="card pad c3"><div class="small muted">Open Tasks</div><div class="stat">${s.todo}</div></div><div class="card pad c3"><div class="small muted">Due / Overdue</div><div class="stat">${s.due}</div></div><div class="card pad c3"><div class="small muted">Applied</div><div class="stat">${s.apps}</div></div><div class="card pad c3"><div class="small muted">Interviews</div><div class="stat">${s.interviews}</div></div></div>
+  </section>
+  <section class="card pad"><div class="eyebrow">Quick Actions</div><div class="quick">
+   <button onclick="openTask()"><strong>＋ Add Task</strong><span>Capture work.</span></button>
+   <button onclick="navigate('jobs')"><strong>⌕ Find Work</strong><span>Jobs + direct job-board links.</span></button>
+   <button onclick="openAssistant()"><strong>✦ Open DeskMate</strong><span>Generate applications, replies, SOPs, briefs & more.</span></button>
+   <button onclick="quickThemeToggle()"><strong>◐ Switch Theme</strong><span>Instant Light / Dark mode.</span></button>
+   <button onclick="navigate('community')"><strong>◎ Community & Rooms</strong><span>Open your internal rooms.</span></button>
+   <button onclick="openAppearanceSettings()"><strong>⚙ Customize</strong><span>Theme, accent, text size & density.</span></button>
+  </div></section></div>
+  <div class="grid">
+   <section class="card pad c7"><div class="head"><h3>Recommended next</h3><button class="btn sm" onclick="navigate('desk')">Open Desk</button></div>
+    ${state.data.tasks.filter(x=>x.status!=="DONE").slice(0,4).map(taskHTML).join("")||`<div class="empty">No open tasks. Add one when something needs your attention.</div>`}
+   </section>
+   <section class="card pad c5"><div class="head"><h3>Your niches</h3><button class="btn sm" onclick="navigate('settings')">Edit</button></div>
+    <div class="row">${(p.niches||[]).map(x=>`<span class="pill">${esc(x)}</span>`).join("")||'<span class="muted small">No niches selected.</span>'}</div>
+    <hr><div class="small muted">Level</div><strong>${esc(p.level)}</strong><div class="small muted" style="margin-top:10px">Preference</div><strong>${esc(p.location)}</strong>
+   </section>
+   <section class="card pad c12">
+    <div class="head"><div><h3>✦ What is DeskMate?</h3><p class="small muted">DeskMate is the built-in generator inside Freelance Desk. It creates structured drafts locally from the context you give it and, for job-related outputs, can use your saved Career Profile Vault evidence.</p></div><button class="btn primary" onclick="openAssistant()">Open DeskMate</button></div>
+    <div class="row"><span class="pill">Cover Letter</span><span class="pill">Application Email</span><span class="pill">Client Reply</span><span class="pill">Follow-Up</span><span class="pill">SOP</span><span class="pill">Meeting Brief</span><span class="pill">Social Caption</span><span class="pill">Portfolio Case Study</span><span class="pill">Job Fit Summary</span></div>
+    <p class="small muted" style="margin-bottom:0">This HTML build uses free local generation logic — no paid AI key required.</p>
+   </section>
+   <section class="card pad c12"><div class="head"><h3>Workspace shortcuts</h3><button class="btn sm" onclick="openAppearanceSettings()">Appearance Settings</button></div><div class="row"><span class="pill">24-hour Job Aggregator</span><span class="pill">Career Profile Vault</span><span class="pill">Application Tracker</span><span class="pill">Internal Rooms</span><span class="pill">Portfolio Lab</span><span class="pill">Currency Converter</span><span class="pill">Conversion Rate Calculator</span></div></section>
+   <section class="card pad c12"><div class="head"><h3>Popular free tools</h3><button class="btn sm" onclick="navigate('tools')">See all</button></div>
+    <div class="toolgrid">${toolDefs.slice(0,6).map(toolCard).join("")}</div>
+   </section>
+  </div>`;
+}
+
+function tabs(items,active,fn){return `<div class="tabs">${items.map(x=>`<button class="tab ${active===x?"active":""}" onclick="${fn}('${x}')">${x}</button>`).join("")}</div>`}
+function renderDesk(){
+ const tab=state.deskTab;
+ let body="";
+ if(tab==="Tasks")body=deskTasks();
+ if(tab==="Sheet")body=deskSheet();
+ if(tab==="Calendar")body=deskCalendar();
+ if(tab==="Links")body=deskLinks();
+ if(tab==="Snippets")body=deskSnippets();
+ if(tab==="Clients")body=deskClients();
+ if(tab==="Notes")body=deskNotes();
+ return `<div class="head"><div><div class="eyebrow">Run the work</div><h2 class="title">Desk</h2></div></div>${tabs(["Tasks","Sheet","Calendar","Links","Snippets","Clients","Notes"],tab,"setDeskTab")}${body}`;
+}
+function setDeskTab(x){state.deskTab=x;render()}
+function taskHTML(t){return `<div class="task"><h5>${esc(t.title)}</h5><p>${esc(t.desc||"")}${t.due?` · ${t.due}`:""}</p><div class="actions"><span class="pill">${t.status}</span><button class="btn sm" onclick="advanceTask('${t.id}')">Advance</button><button class="btn sm bad" onclick="delTask('${t.id}')">Delete</button></div></div>`}
+function deskTasks(){
+ const statuses=["TO DO","IN PROGRESS","WAITING","DONE"];
+ return `<div class="head"><h3>Task Board</h3><button class="btn primary" onclick="openTask()">＋ Add Task</button></div><div class="kanban">${statuses.map(s=>`<div class="kcol"><h4>${s}</h4>${state.data.tasks.filter(t=>t.status===s).map(taskHTML).join("")||'<span class="small muted">No tasks.</span>'}</div>`).join("")}</div>`;
+}
+function openTask(){modal(`<h3>Add Task</h3><div class="form2"><div><label>Title</label><input id="ftitle" class="input"></div><div><label>Status</label><select id="fstatus" class="input"><option>TO DO</option><option>IN PROGRESS</option><option>WAITING</option><option>DONE</option></select></div><div><label>Due date</label><input id="fdue" type="date" class="input"></div><div><label>Priority</label><select id="fpriority" class="input"><option>LOW</option><option selected>MEDIUM</option><option>HIGH</option></select></div></div><label style="margin-top:10px">Description</label><textarea id="fdesc"></textarea><button class="btn primary" onclick="addTask()">Save Task</button>`)}
+function addTask(){const title=document.getElementById("ftitle").value.trim();if(!title)return toast("Add a task title");state.data.tasks.push({id:uid(),title,desc:document.getElementById("fdesc").value,status:document.getElementById("fstatus").value,due:document.getElementById("fdue").value,priority:document.getElementById("fpriority").value});save();closeModal();render();toast("Task saved")}
+function advanceTask(id){const x=state.data.tasks.find(t=>t.id===id),a=["TO DO","IN PROGRESS","WAITING","DONE"];if(x)x.status=a[(a.indexOf(x.status)+1)%a.length];save();render()}
+function delTask(id){state.data.tasks=state.data.tasks.filter(t=>t.id!==id);save();render()}
+function deskSheet(){return `<div class="head"><h3>Quick Sheet</h3><button class="btn" onclick="clearSheet()">Clear</button></div><p class="muted small">A lightweight browser-local scratch sheet. Changes save automatically.</p><div class="sheet">${state.data.sheet.map((v,i)=>`<div class="cell"><input value="${esc(v)}" onchange="sheetSet(${i},this.value)" placeholder="${String.fromCharCode(65+i%5)}${Math.floor(i/5)+1}"></div>`).join("")}</div>`}
+function sheetSet(i,v){state.data.sheet[i]=v;save()} function clearSheet(){if(confirm("Clear the quick sheet?")){state.data.sheet=Array.from({length:25},()=>""),save(),render()}}
+function deskCalendar(){
+ const now=new Date(),y=now.getFullYear(),m=now.getMonth(),first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),cells=[];
+ for(let i=0;i<first;i++)cells.push(`<div></div>`);
+ for(let d=1;d<=days;d++){const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`,ev=state.data.events.filter(e=>e.date===ds);cells.push(`<div class="day"><strong>${d}</strong>${ev.map(e=>`<div class="eventdot">${esc(e.title)}</div>`).join("")}</div>`)}
+ return `<div class="head"><h3>${now.toLocaleString(undefined,{month:"long",year:"numeric"})}</h3><button class="btn primary" onclick="openEvent()">＋ Add Event</button></div><div class="calendar-grid">${["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map(x=>`<strong class="small">${x}</strong>`).join("")}${cells.join("")}</div>`;
+}
+function openEvent(){modal(`<h3>Add Local Calendar Item</h3><div class="form2"><div><label>Title</label><input id="evtitle" class="input"></div><div><label>Date</label><input id="evdate" type="date" class="input" value="${today()}"></div><div><label>Time</label><input id="evtime" type="time" class="input"></div><div><label>Type</label><select id="evtype" class="input"><option>Meeting</option><option>Deadline</option><option>Reminder</option><option>Personal</option></select></div></div><button class="btn primary" style="margin-top:10px" onclick="addEvent()">Save Event</button>`)}
+function addEvent(){const title=document.getElementById("evtitle").value.trim();if(!title)return toast("Add a title");state.data.events.push({id:uid(),title,date:document.getElementById("evdate").value,time:document.getElementById("evtime").value,type:document.getElementById("evtype").value});save();closeModal();render()}
+function deskLinks(){return `<div class="head"><h3>Links Vault</h3><button class="btn primary" onclick="openLink()">＋ Add Link</button></div>${state.data.links.map(x=>`<div class="list-item"><h4>${esc(x.name)}</h4><p>${esc(x.url)}</p><div class="actions"><a class="btn sm" href="${esc(x.url)}" target="_blank" rel="noopener">Open</a><button class="btn sm bad" onclick="removeItem('links','${x.id}')">Delete</button></div></div>`).join("")||'<div class="empty">Save client portals, tools, folders or frequently used websites here.</div>'}`}
+function openLink(){modal(`<h3>Add Link</h3><label>Name</label><input id="lname" class="input"><label style="margin-top:9px">URL</label><input id="lurl" class="input" placeholder="https://..."><button class="btn primary" style="margin-top:10px" onclick="addLink()">Save</button>`)}
+function addLink(){let u=document.getElementById("lurl").value.trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;state.data.links.push({id:uid(),name:document.getElementById("lname").value||u,url:u});save();closeModal();render()}
+function deskSnippets(){return `<div class="head"><h3>Snippets</h3><button class="btn primary" onclick="openSnippet()">＋ Add Snippet</button></div>${state.data.snippets.map(x=>`<div class="list-item"><h4>${esc(x.title)}</h4><p>${esc(x.text).slice(0,160)}</p><div class="actions"><button class="btn sm" onclick="copyText(decodeURIComponent('${encodeURIComponent(x.text)}'))">Copy</button><button class="btn sm bad" onclick="removeItem('snippets','${x.id}')">Delete</button></div></div>`).join("")||'<div class="empty">Save reusable messages, replies and templates.</div>'}`}
+function openSnippet(){modal(`<h3>Add Snippet</h3><label>Title</label><input id="stitle" class="input"><label style="margin-top:9px">Text</label><textarea id="stext"></textarea><button class="btn primary" onclick="addSnippet()">Save</button>`)}
+function addSnippet(){state.data.snippets.push({id:uid(),title:document.getElementById("stitle").value,text:document.getElementById("stext").value});save();closeModal();render()}
+function deskClients(){return `<div class="head"><h3>Clients & Invoices</h3><button class="btn primary" onclick="openClient()">＋ Add Client</button></div>${state.data.clients.map(c=>`<div class="list-item"><h4>${esc(c.company||c.name)}</h4><p>${esc(c.name)} · ${esc(c.email)} · ${esc(c.timezone)}</p><div class="actions"><button class="btn sm" onclick="openInvoice('${c.id}')">Add Invoice</button><button class="btn sm bad" onclick="removeItem('clients','${c.id}')">Delete</button></div>${state.data.invoices.filter(i=>i.clientId===c.id).map(i=>`<div class="small" style="margin-top:7px">Invoice ${esc(i.no)} · ${esc(i.currency)} ${esc(i.amount)} · <strong>${esc(i.status)}</strong></div>`).join("")}</div>`).join("")||'<div class="empty">No client records yet.</div>'}`}
+function openClient(){modal(`<h3>Add Client</h3><div class="form2"><div><label>Company</label><input id="ccompany" class="input"></div><div><label>Contact</label><input id="cname" class="input"></div><div><label>Email</label><input id="cemail" class="input"></div><div><label>Timezone</label><input id="ctz" class="input"></div></div><button class="btn primary" style="margin-top:10px" onclick="addClient()">Save Client</button>`)}
+function addClient(){state.data.clients.push({id:uid(),company:document.getElementById("ccompany").value,name:document.getElementById("cname").value,email:document.getElementById("cemail").value,timezone:document.getElementById("ctz").value});save();closeModal();render()}
+function openInvoice(cid){modal(`<h3>Add Invoice Record</h3><div class="form2"><div><label>Invoice #</label><input id="ino" class="input" value="INV-${Date.now().toString().slice(-5)}"></div><div><label>Amount</label><input id="iamt" type="number" class="input"></div><div><label>Currency</label><select id="icur" class="input"><option>USD</option><option>PHP</option><option>GBP</option><option>AUD</option><option>EUR</option></select></div><div><label>Status</label><select id="istat" class="input"><option>DRAFT</option><option>SENT</option><option>PAID</option><option>OVERDUE</option></select></div></div><button class="btn primary" style="margin-top:10px" onclick="addInvoice('${cid}')">Save Invoice</button>`)}
+function addInvoice(cid){state.data.invoices.push({id:uid(),clientId:cid,no:document.getElementById("ino").value,amount:document.getElementById("iamt").value,currency:document.getElementById("icur").value,status:document.getElementById("istat").value});save();closeModal();render()}
+function deskNotes(){return `<div class="head"><h3>Notes</h3><button class="btn primary" onclick="openNote()">＋ Add Note</button></div>${state.data.notes.map(n=>`<div class="list-item"><h4>${esc(n.title)}</h4><p>${esc(n.body)}</p><div class="actions"><button class="btn sm bad" onclick="removeItem('notes','${n.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No notes yet.</div>'}`}
+function openNote(){modal(`<h3>Add Note</h3><label>Title</label><input id="ntitle" class="input"><label style="margin-top:9px">Note</label><textarea id="nbody"></textarea><button class="btn primary" onclick="addNote()">Save Note</button>`)}
+function addNote(){state.data.notes.push({id:uid(),title:document.getElementById("ntitle").value,body:document.getElementById("nbody").value});save();closeModal();render()}
+function removeItem(k,id){state.data[k]=state.data[k].filter(x=>x.id!==id);save();render()}
+
+function renderCommunity(){
+ const tab=state.communityTab||"Rooms";
+ const body=tab==="Rooms"?renderRooms():renderExternalCommunities();
+ return `<div class="head"><div><div class="eyebrow">Build your own workspace community</div><h2 class="title">Community & Rooms</h2><p class="muted">Create local rooms for job hunting, learning, projects, accountability, or your own community notes—not only links to outside groups.</p></div></div>${tabs(["Rooms","External Communities"],tab,"setCommunityTab")}${body}`;
+}
+function setCommunityTab(x){state.communityTab=x;render()}
+function ensureRoom(){if(!state.activeRoom&&state.data.rooms.length)state.activeRoom=state.data.rooms[0].id}
+function renderRooms(){
+ ensureRoom();const room=state.data.rooms.find(r=>r.id===state.activeRoom);
+ return `<div class="head"><div class="actions"><button class="btn primary" onclick="openCreateRoom()">＋ Create Room</button><button class="btn" onclick="createRoomTemplate('Job Hunt Room')">Job Hunt Template</button><button class="btn" onclick="createRoomTemplate('Study Room')">Study Template</button><button class="btn" onclick="createRoomTemplate('Client Project Room')">Project Template</button></div><span class="small muted">V4 rooms are fully functional and private to this browser. True multi-user sync needs a backend later.</span></div>
+ <div class="roomlayout"><section class="card pad roomlist">${state.data.rooms.map(r=>`<div class="roomitem ${r.id===state.activeRoom?"active":""}" onclick="selectRoom('${r.id}')"><strong>${esc(r.name)}</strong><div class="small muted">${esc(r.purpose||r.type)} · ${(r.messages||[]).length} messages</div></div>`).join("")||'<div class="empty">Create your first internal room.</div>'}</section><section class="card pad chatbox">${room?roomPanel(room):'<div class="empty">Choose or create a room.</div>'}</section></div>`;
+}
+function roomPanel(r){const msgs=r.messages||[];return `<div class="head"><div><h3>${esc(r.name)}</h3><div class="small muted">${esc(r.purpose||"")}</div></div><div class="actions"><button class="btn sm" onclick="openRoomResource('${r.id}')">＋ Resource</button><button class="btn sm" onclick="exportRoom('${r.id}')">Export</button><button class="btn sm bad" onclick="deleteRoom('${r.id}')">Delete Room</button></div></div>${r.resources?.length?`<div class="row">${r.resources.map(x=>`<a class="pill" href="${esc(x.url)}" target="_blank" rel="noopener">↗ ${esc(x.name)}</a>`).join("")}</div><hr>`:""}<div class="messages" id="roomMessages">${msgs.map(m=>`<div class="message ${m.author===state.data.profile.name?"mine":""} ${m.pinned?"pinned":""}"><div class="meta small muted">${esc(m.author)} · ${new Date(m.at).toLocaleString()} ${m.pinned?"· PINNED":""}</div><div>${esc(m.text)}</div><div class="actions"><button class="btn sm" onclick="togglePinMessage('${r.id}','${m.id}')">${m.pinned?"Unpin":"Pin"}</button><button class="btn sm bad" onclick="deleteRoomMessage('${r.id}','${m.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No messages yet. Use this room for notes, planning, accountability, or discussion logs.</div>'}</div><div class="form2" style="margin-top:10px"><input id="roomAuthor" class="input" value="${esc(state.data.profile.name)}" placeholder="Name"><input id="roomMsg" class="input" placeholder="Write a message…"></div><button class="btn primary" style="margin-top:8px" onclick="sendRoomMessage('${r.id}')">Send Message</button>`}
+function openCreateRoom(){modal(`<h3>Create Internal Room</h3><div class="form2"><div><label>Room name</label><input id="rname" class="input"></div><div><label>Type</label><select id="rtype" class="input"><option>General</option><option>Job Hunt</option><option>Study</option><option>Client Project</option><option>Accountability</option><option>Community</option></select></div></div><label style="margin-top:9px">Purpose</label><textarea id="rpurpose"></textarea><button class="btn primary" onclick="createRoom()">Create Room</button>`)}
+function createRoom(){const name=document.getElementById("rname").value.trim();if(!name)return toast("Name the room");const r={id:uid(),name,type:document.getElementById("rtype").value,purpose:document.getElementById("rpurpose").value,messages:[],resources:[],createdAt:new Date().toISOString()};state.data.rooms.unshift(r);state.activeRoom=r.id;save();closeModal();render()}
+function createRoomTemplate(type){const presets={"Job Hunt Room":["Job Hunt Room","Track openings, application ideas, interview notes and accountability."],"Study Room":["Study Room","Keep lesson notes, practice tasks and questions together."],"Client Project Room":["Client Project Room","Centralize project notes, links, updates and decisions."]};const [name,purpose]=presets[type];const r={id:uid(),name,type,purpose,messages:[{id:uid(),author:"DeskMate",text:`Room created from the ${type} template. Add notes, links and progress here.`,at:new Date().toISOString(),pinned:true}],resources:[],createdAt:new Date().toISOString()};state.data.rooms.unshift(r);state.activeRoom=r.id;save();render();toast("Room created")}
+function selectRoom(id){state.activeRoom=id;render()}
+function sendRoomMessage(id){const r=state.data.rooms.find(x=>x.id===id),text=document.getElementById("roomMsg").value.trim(),author=document.getElementById("roomAuthor").value.trim()||state.data.profile.name;if(!text)return;r.messages=r.messages||[];r.messages.push({id:uid(),author,text,at:new Date().toISOString(),pinned:false});save();render()}
+function togglePinMessage(rid,mid){const r=state.data.rooms.find(x=>x.id===rid),m=r?.messages.find(x=>x.id===mid);if(m)m.pinned=!m.pinned;save();render()}
+function deleteRoomMessage(rid,mid){const r=state.data.rooms.find(x=>x.id===rid);if(r)r.messages=r.messages.filter(x=>x.id!==mid);save();render()}
+function openRoomResource(rid){modal(`<h3>Add Room Resource</h3><label>Name</label><input id="rrname" class="input"><label style="margin-top:9px">URL</label><input id="rrurl" class="input" placeholder="https://..."><button class="btn primary" onclick="addRoomResource('${rid}')">Add Resource</button>`)}
+function addRoomResource(rid){const r=state.data.rooms.find(x=>x.id===rid);if(!r)return;let u=document.getElementById("rrurl").value.trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;r.resources=r.resources||[];r.resources.push({id:uid(),name:document.getElementById("rrname").value||u,url:u});save();closeModal();render()}
+function exportRoom(rid){const r=state.data.rooms.find(x=>x.id===rid);if(!r)return;const text=`${r.name}\n${r.purpose||""}\n\n`+(r.messages||[]).map(m=>`[${new Date(m.at).toLocaleString()}] ${m.author}: ${m.text}`).join("\n\n");downloadText(`${r.name.replace(/[^\w-]+/g,"-")}.txt`,text)}
+function deleteRoom(id){if(!confirm("Delete this room and its local messages?"))return;state.data.rooms=state.data.rooms.filter(x=>x.id!==id);state.activeRoom=state.data.rooms[0]?.id||null;save();render()}
+function renderExternalCommunities(){return `<div class="head"><h3>External Communities</h3><button class="btn primary" onclick="openExternalCommunity()">＋ Add Community</button></div><div class="grid"><section class="card pad c8">${state.data.externalCommunities.map(c=>`<div class="list-item"><h4>${esc(c.name)}</h4><p>${esc(c.platform)} · ${esc(c.notes||"")}</p><div class="actions"><a class="btn sm" href="${esc(c.url)}" target="_blank" rel="noopener">Open</a><button class="btn sm bad" onclick="removeItem('externalCommunities','${c.id}')">Delete</button></div></div>`).join("")||'<div class="empty">Save Facebook groups, Reddit communities, Slack/Discord spaces or professional communities here.</div>'}</section><section class="card pad c4"><h3>Rule reminder</h3><p class="small muted">Always read current community rules before posting, linking, promoting or messaging.</p><div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://www.reddit.com/r/freelance/">r/freelance</a><a class="btn" target="_blank" rel="noopener" href="https://www.reddit.com/r/smallbusiness/">r/smallbusiness</a></div></section></div>`}
+function openExternalCommunity(){modal(`<h3>Add External Community</h3><div class="form2"><div><label>Name</label><input id="cmname" class="input"></div><div><label>Platform</label><select id="cmplatform" class="input"><option>Facebook</option><option>Reddit</option><option>Discord</option><option>Slack</option><option>LinkedIn</option><option>Other</option></select></div></div><label style="margin-top:9px">URL</label><input id="cmurl" class="input"><label style="margin-top:9px">Rules / notes</label><textarea id="cmnotes"></textarea><button class="btn primary" onclick="addExternalCommunity()">Save</button>`)}
+function addExternalCommunity(){let u=document.getElementById("cmurl").value.trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;state.data.externalCommunities.push({id:uid(),name:document.getElementById("cmname").value,platform:document.getElementById("cmplatform").value,url:u,notes:document.getElementById("cmnotes").value});save();closeModal();render()}
+
+function inferJob(j){
+ const text=(j.title+" "+j.description+" "+(j.level||"")).toLowerCase();
+ const explicitEntry=/(no experience|required no experience|entry[- ]level|fresh graduate|fresh graduates|0[-– ]?1 year|junior|training provided|career shifter)/i.test(text);
+ const senior=/(senior|lead |manager|director|head of|principal|staff engineer|5\+ years|7\+ years|10\+ years)/i.test(text);
+ const possibleEntry=!senior && /(assistant|associate|coordinator|support|junior|intern|trainee)/i.test(text);
+ const negotiationExplicit=/(negotiable|depending on experience|\bdoe\b|based on experience|based on skills)/i.test(text);
+ const negotiationPossible=!negotiationExplicit && (!!j.salaryMin&&!!j.salaryMax&&j.salaryMax>j.salaryMin);
+ const red=[];
+ if(/unpaid trial|pay to apply|payment.*training|purchase.*equipment.*before|telegram only|crypto payment/i.test(text))red.push("Review unusual payment/trial language");
+ return {...j,entryFlag:explicitEntry?"VERIFIED":possibleEntry?"POSSIBLE":"",negFlag:negotiationExplicit?"EXPLICIT":negotiationPossible?"POSSIBLE":"",red};
+}
+async function loadLiveJobs(force=false){
+ const status=document.getElementById("liveStatus");if(status)status.textContent="Loading free/public job feeds…";
+ try{
+  const cached=JSON.parse(localStorage.getItem(JOB_CACHE_KEY)||"null");
+  if(!force&&cached&&Date.now()-cached.time<DAY){
+    state.liveJobs=cached.jobs.map(inferJob);
+    state.sourceHealth=cached.sourceHealth||{};
+    state.liveStatus=`Using 24-hour cache · last refreshed ${new Date(cached.time).toLocaleString()}`;
+    render();return
+  }
+ }catch(e){}
+ const results=[],health={};
+
+ try{
+  const r=await fetch("https://jobicy.com/api/v2/remote-jobs?count=100");
+  if(!r.ok)throw new Error("Jobicy HTTP "+r.status);
+  const d=await r.json();
+  (d.jobs||[]).forEach(x=>results.push(inferJob({
+    id:"jobicy-"+x.id,source:"Jobicy",freshness:"CURRENT FEED",
+    title:x.jobTitle,company:x.companyName,location:x.jobGeo||"Remote",
+    type:Array.isArray(x.jobType)?x.jobType.join(", "):(x.jobType||""),
+    level:x.jobLevel||"",description:strip(x.jobDescription||x.jobExcerpt),
+    url:x.url,pubDate:x.pubDate,salaryMin:x.salaryMin,salaryMax:x.salaryMax,
+    currency:x.salaryCurrency,period:x.salaryPeriod,remote:true
+  })));
+  health.Jobicy={status:"LIVE",note:"Public API"};
+ }catch(e){health.Jobicy={status:"UNAVAILABLE",note:"Could not load in this browser"}}
+
+ try{
+  const r=await fetch("https://www.arbeitnow.com/api/job-board-api");
+  if(!r.ok)throw new Error("Arbeitnow HTTP "+r.status);
+  const d=await r.json();
+  (d.data||[]).slice(0,100).forEach(x=>results.push(inferJob({
+    id:"arbeit-"+(x.slug||uid()),source:"Arbeitnow",freshness:"CURRENT FEED",
+    title:x.title,company:x.company_name,location:x.location||"",
+    type:(x.tags||[]).join(", "),level:"",description:strip(x.description),
+    url:x.url,pubDate:x.created_at?new Date(x.created_at*1000).toISOString():"",
+    remote:!!x.remote
+  })));
+  health.Arbeitnow={status:"LIVE",note:"Public API"};
+ }catch(e){health.Arbeitnow={status:"UNAVAILABLE",note:"Could not load in this browser"}}
+
+ try{
+  const r=await fetch("https://remotive.com/api/remote-jobs?limit=100");
+  if(!r.ok)throw new Error("Remotive HTTP "+r.status);
+  const d=await r.json();
+  (d.jobs||[]).slice(0,100).forEach(x=>results.push(inferJob({
+    id:"remotive-"+x.id,source:"Remotive",freshness:"24H DELAYED",
+    title:x.title,company:x.company_name,location:x.candidate_required_location||"Remote",
+    type:x.job_type||"",level:"",description:strip(x.description),
+    url:x.url,pubDate:x.publication_date,
+    salaryTextRaw:x.salary||"",remote:true
+  })));
+  health.Remotive={status:"DELAYED",note:"Public API · about 24h delayed"};
+ }catch(e){health.Remotive={status:"UNAVAILABLE",note:"Could not load in this browser"}}
+
+ const dedup=new Map();
+ results.forEach(x=>dedup.set((x.title+"|"+x.company).toLowerCase(),x));
+ state.liveJobs=[...dedup.values()].sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
+ state.sourceHealth=health;
+ state.liveStatus=state.liveJobs.length
+   ?`${state.liveJobs.length} listings loaded · 24-hour refresh cycle`
+   :"Public feeds could not load in this browser. Use the direct-source search buttons below.";
+ if(state.liveJobs.length){
+   localStorage.setItem(JOB_CACHE_KEY,JSON.stringify({
+     time:Date.now(),jobs:state.liveJobs,sourceHealth:state.sourceHealth
+   }));
+ }
+ render();
+}
+function salaryText(j){
+ if(j.salaryTextRaw)return j.salaryTextRaw;
+ if(j.salaryMin||j.salaryMax){
+  const cur=j.currency||"",a=j.salaryMin?Number(j.salaryMin).toLocaleString():"",b=j.salaryMax?Number(j.salaryMax).toLocaleString():"";
+  return `${cur} ${a}${a&&b?"–":""}${b} ${j.period||""}`.trim()
+ }
+ return "Salary not listed"
+}
+function sourceHealthHTML(){
+ const defaults=[
+  ["Jobicy",state.sourceHealth.Jobicy?.status||"READY",state.sourceHealth.Jobicy?.note||"Free public API"],
+  ["Arbeitnow",state.sourceHealth.Arbeitnow?.status||"READY",state.sourceHealth.Arbeitnow?.note||"Free public API"],
+  ["Remotive",state.sourceHealth.Remotive?.status||"READY",state.sourceHealth.Remotive?.note||"Public feed is ~24h delayed"],
+  ["OnlineJobs.ph","DIRECT","Open source directly"],
+  ["LinkedIn","DIRECT","Open source directly"],
+  ["Indeed","DIRECT","Open source directly"],
+  ["JobStreet","DIRECT","Open source directly"]
+ ];
+ return `<div class="row">${defaults.map(([n,s,note])=>`<span class="pill ${s==="LIVE"?"good":s==="DELAYED"?"warn":s==="UNAVAILABLE"?"bad":""}" title="${esc(note)}">${n}: ${s}</span>`).join("")}</div>`
+}
+function jobViewTabs(){
+ const views=["All Jobs","Newest","Salary Disclosed","Beginner-Friendly","Negotiation Signals","My Niche Matches"];
+ return `<div class="tabs">${views.map(v=>`<button class="tab ${state.jobView===v?"active":""}" onclick="setJobView('${v}')">${v}</button>`).join("")}</div>`
+}
+function setJobView(v){state.jobView=v;renderJobResults()}
+function renderJobs(){
+ const jobs=filteredLiveJobs();
+ return `<div class="head"><div><div class="eyebrow">Job discovery + full-post fit analysis</div><h2 class="title">Find Work</h2><p class="muted">Public-feed jobs are for discovery. For a more reliable fit check, paste the complete job post into the analyzer.</p></div><button class="btn primary" onclick="loadLiveJobs(true)">↻ Refresh Jobs</button></div>
+
+ <section class="card pad manual-analyzer" id="manualJobAnalyzer" style="margin-bottom:16px">
+  <div class="head"><div><div class="eyebrow">FB · IG · REDDIT · THREADS · JOB BOARDS</div><h3>Paste Any Job Post — Analyze My Fit</h3><p class="small muted">Paste the COMPLETE job post from Facebook, Instagram, Reddit, Threads, OnlineJobs.ph, LinkedIn, JobStreet, Indeed, Upwork, VA Workers PH, or anywhere else. The analyzer compares it with your Career Profile Vault and saved profile. No automatic scraped-job percentage.</p></div><span class="pill good">FULL POST ANALYZER</span></div>
+  <div class="form3">
+   <div><label>Source</label><select id="manualSource" class="input"><option>Facebook</option><option>Instagram</option><option>Reddit</option><option>Threads</option><option>OnlineJobs.ph</option><option>LinkedIn</option><option>JobStreet</option><option>Indeed</option><option>Upwork</option><option>VA Workers PH</option><option>Other</option></select></div>
+   <div><label>Role / Job Title</label><input id="manualRole" class="input" placeholder="e.g. Executive Assistant"></div>
+   <div><label>Company / Client (optional)</label><input id="manualCompany" class="input" placeholder="Company or client name"></div>
+  </div>
+  <label style="margin-top:9px">Original Post URL (optional)</label><input id="manualUrl" class="input" placeholder="https://...">
+  <label style="margin-top:9px">Complete Job Description / Post</label>
+  <textarea id="manualJD" style="min-height:300px" placeholder="Paste the full job post here..."></textarea>
+  <div class="actions"><button class="btn primary" onclick="analyzePastedJob()">Analyze My Fit</button><button class="btn" onclick="clearPastedJob()">Clear</button></div>
+  <div id="manualJobResult"></div>
+ </section>
+
+ <section class="card pad" style="margin-bottom:16px">
+  <div class="head"><div><h3>Quick Job Sites</h3><p class="small muted">Open a platform, copy the complete post, then paste it above when you want a fit verdict.</p></div></div>
+  <div class="actions">
+   <a class="btn primary" href="https://www.onlinejobs.ph/jobseekers/jobsearch" target="_blank" rel="noopener">OnlineJobs.ph ↗</a>
+   <a class="btn" href="https://www.linkedin.com/jobs/" target="_blank" rel="noopener">LinkedIn Jobs ↗</a>
+   <a class="btn" href="https://ph.indeed.com/" target="_blank" rel="noopener">Indeed PH ↗</a>
+   <a class="btn" href="https://ph.jobstreet.com/" target="_blank" rel="noopener">JobStreet PH ↗</a>
+   <a class="btn" href="https://vaworkersph.com/" target="_blank" rel="noopener">VA Workers PH ↗</a>
+   <a class="btn" href="https://www.upwork.com/nx/search/jobs/" target="_blank" rel="noopener">Upwork ↗</a>
+   <a class="btn" href="https://www.virtualstaff.ph/jobs" target="_blank" rel="noopener">VirtualStaff.ph ↗</a>
+   <a class="btn" href="https://weworkremotely.com/" target="_blank" rel="noopener">We Work Remotely ↗</a>
+   <a class="btn" href="https://remoteok.com/" target="_blank" rel="noopener">Remote OK ↗</a>
+   <a class="btn" href="https://wellfound.com/jobs" target="_blank" rel="noopener">Wellfound ↗</a>
+   <a class="btn" href="https://philjobnet.gov.ph/" target="_blank" rel="noopener">PhilJobNet ↗</a>
+  </div>
+ </section>
+
+ <section class="card pad" style="margin-bottom:16px">
+  <div class="head"><div><h3>Career Profile Vault</h3><p class="small muted">Resume, portfolio, certificates and career text become the evidence used by the full-post analyzer.</p></div><div class="actions"><button class="btn primary" onclick="document.getElementById('careerFiles').click()">＋ Upload Files</button><button class="btn" onclick="openProfileText()">＋ Paste Career Text</button><input id="careerFiles" class="hidden" type="file" multiple accept=".pdf,.docx,.txt,.md,.csv,.json" onchange="handleCareerFiles(this.files)"></div></div>
+  <div class="vaultgrid">${careerVaultCards()}</div>
+ </section>
+
+ <div class="livebar"><strong>24-Hour Job Discovery Feed:</strong> <span id="liveStatus">${esc(state.liveStatus||"Ready to load.")}</span><br><span class="small">Feed results are discovery leads only. Automatic match percentages from partial scraped descriptions are removed.</span></div>
+
+ <section class="card pad" style="margin-bottom:16px"><div class="head"><h3>Source Status</h3><span class="small muted">Automated vs direct sources are clearly labeled.</span></div>${sourceHealthHTML()}</section>
+
+ <section class="card pad">
+  <div class="head"><h3>Discover Jobs</h3><span class="small muted">${jobs.length} results</span></div>
+  ${jobViewTabs()}
+  <div class="jobfilters">
+   <input id="jq" class="input" placeholder="Role, company, skill, niche…" oninput="renderJobResults()">
+   <select id="jsource" class="input" onchange="renderJobResults()"><option>All sources</option><option>Jobicy</option><option>Arbeitnow</option><option>Remotive</option></select>
+   <select id="jentry" class="input" onchange="renderJobResults()"><option>Any experience</option><option>Verified entry-level</option><option>Possible entry-level</option></select>
+   <select id="jsalary" class="input" onchange="renderJobResults()"><option>Any salary</option><option>Salary listed</option></select>
+   <select id="jremote" class="input" onchange="renderJobResults()"><option>All jobs</option><option>Remote only</option></select>
+  </div>
+  <div class="form3" style="margin-top:9px">
+   <select id="jdate" class="input" onchange="renderJobResults()"><option>Any date</option><option>Last 24 hours</option><option>Last 3 days</option><option>Last 7 days</option><option>Last 30 days</option></select>
+   <input id="jlocation" class="input" placeholder="Location / eligibility keyword" oninput="renderJobResults()">
+   <button class="btn" onclick="clearJobFilters()">Clear Filters</button>
+  </div>
+  <div id="jobResults" class="jobs" style="margin-top:13px">${jobCards(jobs)}</div>
+ </section>
+
+ <section class="card pad" style="margin-top:16px">
+  <div class="head"><div><h3>Cross-Board Search Helper</h3><p class="small muted">Search a board, then paste the full post above for analysis.</p></div></div>
+  <div class="form2"><input id="boardQuery" class="input" placeholder="e.g. virtual assistant, social media manager"><select id="boardLocation" class="input"><option>Remote / Anywhere</option><option>Philippines</option><option>Worldwide</option></select></div>
+  <div class="actions"><button class="btn" onclick="openBoardSearch('linkedin')">LinkedIn</button><button class="btn" onclick="openBoardSearch('indeed')">Indeed PH</button><button class="btn" onclick="openBoardSearch('jobstreet')">JobStreet PH</button><button class="btn" onclick="openBoardSearch('olj')">OnlineJobs.ph</button><button class="btn" onclick="openBoardSearch('vaworkers')">VA Workers PH</button><button class="btn" onclick="openBoardSearch('google')">Google Search</button></div>
+ </section>`;
+}
+function clearJobFilters(){
+ ["jq","jlocation"].forEach(id=>{const e=document.getElementById(id);if(e)e.value=""});
+ [["jsource","All sources"],["jentry","Any experience"],["jsalary","Any salary"],["jremote","All jobs"],["jdate","Any date"]].forEach(([id,v])=>{const e=document.getElementById(id);if(e)e.value=v});
+ state.jobView="All Jobs";renderJobResults()
+}
+function filteredLiveJobs(){
+ const q=(document.getElementById("jq")?.value||"").toLowerCase(),
+ src=document.getElementById("jsource")?.value||"All sources",
+ ent=document.getElementById("jentry")?.value||"Any experience",
+ sal=document.getElementById("jsalary")?.value||"Any salary",
+ rem=document.getElementById("jremote")?.value||"All jobs",
+ date=document.getElementById("jdate")?.value||"Any date",
+ loc=(document.getElementById("jlocation")?.value||"").toLowerCase(),
+ niches=(state.data.profile.niches||[]).map(x=>x.toLowerCase());
+ let maxAge=Infinity;
+ if(date==="Last 24 hours")maxAge=1;
+ if(date==="Last 3 days")maxAge=3;
+ if(date==="Last 7 days")maxAge=7;
+ if(date==="Last 30 days")maxAge=30;
+ let out=state.liveJobs.filter(j=>{
+  const blob=(j.title+" "+j.company+" "+j.description+" "+j.type+" "+j.location).toLowerCase();
+  const age=j.pubDate?(Date.now()-new Date(j.pubDate).getTime())/86400000:0;
+  return (!q||blob.includes(q))
+   &&(src==="All sources"||j.source===src)
+   &&(ent==="Any experience"||(ent==="Verified entry-level"&&j.entryFlag==="VERIFIED")||(ent==="Possible entry-level"&&(j.entryFlag==="VERIFIED"||j.entryFlag==="POSSIBLE")))
+   &&(sal==="Any salary"||salaryText(j)!=="Salary not listed")
+   &&(rem==="All jobs"||j.remote)
+   &&(!loc||(j.location||"").toLowerCase().includes(loc)||blob.includes(loc))
+   &&age<=maxAge
+ });
+ if(state.jobView==="Newest")out.sort((a,b)=>new Date(b.pubDate||0)-new Date(a.pubDate||0));
+ if(state.jobView==="Salary Disclosed")out=out.filter(j=>salaryText(j)!=="Salary not listed");
+ if(state.jobView==="Beginner-Friendly")out=out.filter(j=>j.entryFlag==="VERIFIED"||j.entryFlag==="POSSIBLE");
+ if(state.jobView==="Negotiation Signals")out=out.filter(j=>!!j.negFlag);
+ if(state.jobView==="My Niche Matches"&&niches.length)out=out.filter(j=>niches.some(n=>(j.title+" "+j.description+" "+j.type).toLowerCase().includes(n.replace(" va","").replace("/"," "))));
+ return out
+}
+function renderJobResults(){
+ const e=document.getElementById("jobResults");if(e)e.innerHTML=jobCards(filteredLiveJobs());
+ const count=document.querySelector("#jobResults")?.closest(".card")?.querySelector(".head .muted");
+ if(count)count.textContent=`${filteredLiveJobs().length} matching results`
+}
+function careerVaultCards(){
+ const docs=state.data.profileDocs||[];if(!docs.length)return `<div class="empty" style="grid-column:1/-1">No career resources yet. Upload a resume or portfolio so Analyze Fit can use real evidence.</div>`;
+ return docs.map(d=>`<article class="doccard"><div class="cat">${esc(d.kind)}</div><h4>${esc(d.name)}</h4><div class="docmeta">${esc(d.type)} · ${Number(d.text?.length||0).toLocaleString()} extracted characters</div><p class="small muted">${esc((d.text||"").slice(0,170))}${(d.text||"").length>170?"…":""}</p><div class="actions"><button class="btn sm" onclick="previewCareerDoc('${d.id}')">Preview</button><button class="btn sm bad" onclick="deleteCareerDoc('${d.id}')">Delete</button></div></article>`).join("")
+}
+function guessDocKind(n){n=(n||"").toLowerCase();if(/resume|cv/.test(n))return"RESUME";if(/portfolio|case.?study|sample/.test(n))return"PORTFOLIO";if(/cert|training|course/.test(n))return"CERTIFICATE / TRAINING";return"SUPPORTING RESOURCE"}
+async function handleCareerFiles(list){const files=[...list];let added=0,failed=[];for(const file of files){try{const text=await extractCareerFileText(file);if(!text.trim())throw Error("No readable text found");if(state.data.profileDocs.length>=12)throw Error("Vault limit reached (12 resources)");state.data.profileDocs.push({id:uid(),name:file.name,type:file.type||file.name.split(".").pop(),kind:guessDocKind(file.name),text:text.slice(0,180000),addedAt:new Date().toISOString()});added++}catch(e){failed.push(`${file.name}: ${e.message}`)}}save();render();if(added)toast(`${added} resource${added===1?"":"s"} added`);if(failed.length)modal(`<h3>Some files could not be read</h3><p class="small muted">${failed.map(esc).join("<br>")}</p><p>For scanned/image-only PDFs, paste the relevant text manually.</p>`)}
+async function extractCareerFileText(file){const ext=(file.name.split(".").pop()||"").toLowerCase();if(["txt","md","csv","json"].includes(ext))return await file.text();if(ext==="docx"){if(!window.mammoth)throw Error("DOCX reader did not load");const b=await file.arrayBuffer(),r=await mammoth.extractRawText({arrayBuffer:b});return r.value||""}if(ext==="pdf"){if(!window.pdfjsLib)throw Error("PDF reader did not load");pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";const b=await file.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:b}).promise,p=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n),tc=await page.getTextContent();p.push(tc.items.map(x=>x.str).join(" "))}return p.join("\n")}throw Error("Unsupported file type")}
+function openProfileText(){modal(`<h3>Add Career Profile Text</h3><div class="form2"><div><label>Resource name</label><input id="ptname" class="input" value="Career Profile Notes"></div><div><label>Type</label><select id="ptkind" class="input"><option>RESUME</option><option>PORTFOLIO</option><option>CERTIFICATE / TRAINING</option><option selected>SUPPORTING RESOURCE</option></select></div></div><label style="margin-top:9px">Paste text</label><textarea id="pttext" style="min-height:260px"></textarea><button class="btn primary" onclick="saveProfileText()">Save</button>`)}
+function saveProfileText(){const text=document.getElementById("pttext").value.trim();if(!text)return toast("Paste some profile text");state.data.profileDocs.push({id:uid(),name:document.getElementById("ptname").value||"Career Profile Notes",type:"text",kind:document.getElementById("ptkind").value,text,addedAt:new Date().toISOString()});save();closeModal();render()}
+function previewCareerDoc(id){const d=state.data.profileDocs.find(x=>x.id===id);if(d)modal(`<div class="cat">${esc(d.kind)}</div><h3>${esc(d.name)}</h3><textarea readonly style="min-height:430px">${esc(d.text)}</textarea>`)}
+function deleteCareerDoc(id){if(confirm("Delete this career resource?")){state.data.profileDocs=state.data.profileDocs.filter(x=>x.id!==id);save();render()}}
+function profileCorpus(){const p=state.data.profile;return[p.name,p.title,(p.niches||[]).join(" "),p.skills,p.location,(state.data.profileDocs||[]).map(d=>d.text).join("\n")].filter(Boolean).join("\n")}
+const FIT_SKILLS=["google workspace","gmail","google calendar","google sheets","google docs","microsoft office","excel","word","powerpoint","outlook","canva","capcut","photoshop","figma","notion","clickup","trello","asana","slack","zoom","calendly","loom","hubspot","salesforce","gohighlevel","mailchimp","manychat","zapier","make.com","n8n","shopify","woocommerce","amazon","quickbooks","xero","bookkeeping","data entry","crm","lead generation","prospecting","cold email","calendar management","inbox management","email management","travel planning","meeting coordination","executive support","administrative support","project management","operations","sop","research","market research","customer support","customer service","community management","social media management","content creation","content scheduling","copywriting","seo","google analytics","meta business suite","facebook ads","google ads","recruitment","candidate sourcing","interview scheduling","onboarding","real estate","property management","transaction coordination","wordpress","webflow","html","css","javascript","python","sql","data analysis","communication","time management","organization","attention to detail"];
+const FIT_STOP=new Set("the and for with that this from your you are our their have has had will would should could can may into about job role work working required requirements preferred plus team company candidate candidates responsibilities responsibility skills skill experience years year remote position looking must using use used support".split(" "));
+function norm(s){return String(s||"").toLowerCase().replace(/[^a-z0-9+#. ]+/g," ").replace(/\s+/g," ").trim()}
+function fitKeywords(text){const low=norm(text),skills=FIT_SKILLS.filter(x=>low.includes(x)),words=low.split(" ").filter(w=>w.length>3&&!FIT_STOP.has(w)),freq={};words.forEach(w=>freq[w]=(freq[w]||0)+1);return{skills:[...new Set(skills)],common:Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,20).map(x=>x[0])}}
+function fitEvidence(corpus,terms){const sent=String(corpus||"").replace(/\s+/g," ").split(/(?<=[.!?])\s+|\n+/).filter(Boolean),out=[];for(const term of terms){const x=sent.find(s=>norm(s).includes(norm(term)));if(x)out.push({term,snippet:x.slice(0,240)})}return out.slice(0,8)}
+function evidenceFitAnalysis(jobText,job={}){const corpus=profileCorpus(),hasDocs=state.data.profileDocs.length>0,jk=fitKeywords(jobText),matched=jk.skills.filter(x=>norm(corpus).includes(norm(x))),missing=jk.skills.filter(x=>!matched.includes(x)),common=jk.common.filter(w=>norm(corpus).split(" ").includes(w)),skill=jk.skills.length?matched.length/jk.skills.length:Math.min(1,common.length/10),roleWords=norm(job.title||"").split(" ").filter(w=>w.length>3&&!FIT_STOP.has(w)),role=roleWords.length?roleWords.filter(w=>norm(corpus).includes(w)).length/roleWords.length:.5,loc=norm((job.location||"")+" "+jobText),pref=norm(state.data.profile.location||"");let locScore=.75,locNote="Location/schedule needs manual confirmation.";if(/worldwide|anywhere|remote/.test(loc)){locScore=1;locNote="Remote/worldwide language detected."}if(/us only|united states only|must reside in the us/.test(loc)&&/philippines/.test(pref)){locScore=.15;locNote="Possible location mismatch: listing appears US-only."}const score=Math.max(0,Math.min(100,Math.round((skill*.62+role*.23+locScore*.1+(hasDocs?1:.35)*.05)*100))),label=score>=75?"STRONG FIT":score>=55?"POSSIBLE FIT":"WEAK / UNCLEAR FIT";return{score,label,confidence:hasDocs?(state.data.profileDocs.length>=2?"HIGH":"MEDIUM"):"LOW",matchedSkills:matched,missingSkills:missing,locNote,evidence:fitEvidence(corpus,matched.length?matched:common.slice(0,6))}}
+function fitResultHTML(a){return `<div class="fitgrid"><div class="fitmetric"><span class="small muted">Evidence Fit</span><strong>${a.score}%</strong></div><div class="fitmetric"><span class="small muted">Assessment</span><strong style="font-size:15px">${a.label}</strong></div><div class="fitmetric"><span class="small muted">Confidence</span><strong style="font-size:15px">${a.confidence}</strong></div><div class="fitmetric"><span class="small muted">Vault Resources</span><strong>${state.data.profileDocs.length}</strong></div></div><p class="small muted">Evidence screening only; not a hiring guarantee.</p><div class="grid"><div class="c6"><h4>Matched evidence</h4>${a.matchedSkills.length?`<div class="row">${a.matchedSkills.map(x=>`<span class="pill good">${esc(x)}</span>`).join("")}</div>`:"<p class='small muted'>No exact skill phrase match.</p>"}${a.evidence.map(e=>`<div class="evidence"><strong>${esc(e.term)}</strong><br>${esc(e.snippet)}</div>`).join("")}</div><div class="c6"><h4>Gaps / verify</h4>${a.missingSkills.length?`<div class="row">${a.missingSkills.slice(0,12).map(x=>`<span class="pill warn">${esc(x)}</span>`).join("")}</div>`:"<span class='pill good'>No exact skill gaps detected.</span>"}<p class="small"><strong>Eligibility:</strong> ${esc(a.locNote)}</p></div></div>`}
+function groundedKit(job,a){const name=state.data.profile.name||"Applicant",matched=a.matchedSkills.slice(0,6),ev=a.evidence.slice(0,3),company=job.company||"the company",role=job.title||"the advertised role",skills=matched.length?matched.join(", "):"the relevant skills reflected in my uploaded materials",evidence=ev.length?ev.map(x=>x.snippet).join(" "):"My uploaded materials contain the background I would use to discuss my fit for this role.",gaps=a.missingSkills.slice(0,3);return{cover:`Dear Hiring Team,\n\nI am applying for the ${role} opportunity at ${company}. After reviewing the role against my resume and supporting materials, the strongest areas of alignment include ${skills}.\n\n${evidence}\n\nI am interested in contributing to the responsibilities described in the posting while bringing a dependable approach to communication, organization and follow-through.${gaps.length?` I also noted areas I would clarify or continue developing, including ${gaps.join(", ")}, and I would be transparent about those during the process.`:""}\n\nI would welcome the opportunity to discuss how my actual experience and skills can support your team.\n\nSincerely,\n${name}`,email:`Subject: Application — ${role}\n\nHello,\n\nI’m reaching out regarding the ${role} opening at ${company}. My background aligns most clearly with ${skills}. I reviewed the role carefully and would be glad to discuss how my experience can support the team.\n\nPortfolio/Resume: [attach or insert your approved link]\n\nThank you,\n${name}`,interview:`INTERVIEW PREP — ${role} at ${company}\n\nEvidence to discuss:\n${ev.length?ev.map((x,i)=>`${i+1}. ${x.term}: ${x.snippet}`).join("\n"):"1. Select one truthful example from your uploaded materials."}\n\nGaps / requirements to clarify:\n${gaps.length?gaps.map((x,i)=>`${i+1}. ${x}`).join("\n"):"1. Verify schedule, tools, scope and success measures."}\n\nQuestions:\n1. What are the top priorities in the first 30–60 days?\n2. What does strong performance look like?\n3. What requires approval vs independent ownership?\n4. Which tools/processes are already in place?`}}
+let activeAnalysisJob={};
+function openJobAnalyzer(desc,title,job={},auto=false){activeAnalysisJob=job;modal(`<div class="cat">CAREER PROFILE + JOB ANALYZER</div><h3>${esc(title)}</h3>${state.data.profileDocs.length?`<span class="pill good">${state.data.profileDocs.length} career resources loaded</span>`:`<div class="livebar"><strong>Tip:</strong> upload your resume/portfolio first for stronger evidence.</div>`}<label style="margin-top:10px">Job description</label><textarea id="jd" style="min-height:300px">${esc(desc)}</textarea><div id="fitout" class="preview"></div><button class="btn primary" onclick="runFit(${auto})">Analyze Evidence Fit</button><div id="kitroot"></div>`);if(auto)setTimeout(()=>runFit(true),40)}
+function runFit(auto=false){const d=document.getElementById("jd").value.trim(),job={...activeAnalysisJob,description:d},a=evidenceFitAnalysis(d,job);document.getElementById("fitout").innerHTML=fitResultHTML(a);if(job.url){const rec=saveJobRecord(job,"REVIEWING");rec.fitScore=a.score;save()}document.getElementById("kitroot").innerHTML=(auto||a.score>=75)?renderGroundedKit(job,a):`<hr><div class="head"><div><h3>Application Draft</h3><p class="small muted">Fit is below the automatic strong-fit threshold. Review gaps first.</p></div><button class="btn" onclick="manualGroundedKit()">Create Draft Anyway</button></div>`}
+function manualGroundedKit(){const d=document.getElementById("jd").value.trim(),job={...activeAnalysisJob,description:d},a=evidenceFitAnalysis(d,job);document.getElementById("kitroot").innerHTML=renderGroundedKit(job,a)}
+function renderGroundedKit(job,a){const k=groundedKit(job,a);state.data.applicationKits.unshift({id:uid(),jobTitle:job.title||"",company:job.company||"",score:a.score,...k,createdAt:new Date().toISOString()});state.data.applicationKits=state.data.applicationKits.slice(0,40);save();return `<hr><div class="head"><div><h3>Application Kit</h3><p class="small muted">Generated from available evidence. Review before sending.</p></div><span class="pill ${a.score>=75?"good":"warn"}">${a.score>=75?"STRONG FIT KIT":"REVIEW GAPS"}</span></div><div class="tabs"><button class="tab active" onclick="switchKit('cover',this)">Cover Letter</button><button class="tab" onclick="switchKit('email',this)">Application Email</button><button class="tab" onclick="switchKit('interview',this)">Interview Prep</button></div><textarea id="kitcover" class="kitarea">${esc(k.cover)}</textarea><textarea id="kitemail" class="kitarea hidden">${esc(k.email)}</textarea><textarea id="kitinterview" class="kitarea hidden">${esc(k.interview)}</textarea><div class="actions"><button class="btn primary" onclick="copyActiveKit()">Copy</button><button class="btn" onclick="downloadActiveKit()">Download TXT</button></div>`}
+function switchKit(k,b){["cover","email","interview"].forEach(x=>document.getElementById("kit"+x)?.classList.toggle("hidden",x!==k));b.parentElement.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active")}
+function activeKitArea(){return["kitcover","kitemail","kitinterview"].map(id=>document.getElementById(id)).find(x=>x&&!x.classList.contains("hidden"))}
+function copyActiveKit(){const e=activeKitArea();if(e)copyText(e.value)}function downloadActiveKit(){const e=activeKitArea();if(e)downloadText("application-draft.txt",e.value)}
+
+const FIT_FAMILIES=[
+ {name:"Calendar / Scheduling",terms:["calendar management","google calendar","scheduling","appointment scheduling","schedule management","calendar coordination","meeting scheduling"]},
+ {name:"Inbox / Email",terms:["inbox management","email management","gmail","outlook","email support","email correspondence","email handling"]},
+ {name:"Administrative Support",terms:["administrative support","admin support","office administration","data entry","documentation","records management","file management","general virtual assistant"]},
+ {name:"Executive Support",terms:["executive support","executive assistant","ceo support","founder support","executive calendar","executive operations"]},
+ {name:"Research",terms:["research","market research","internet research","web research","competitor research","data research"]},
+ {name:"Lead Generation",terms:["lead generation","prospecting","lead sourcing","list building","lead research","outreach"]},
+ {name:"CRM",terms:["crm","hubspot","gohighlevel","highlevel","salesforce","contact management","pipeline management"]},
+ {name:"Project / Task Management",terms:["project management","task management","clickup","trello","asana","notion","monday.com","project coordination"]},
+ {name:"Social Media",terms:["social media management","social media","content creation","content scheduling","meta business suite","canva","community engagement"]},
+ {name:"Customer Support",terms:["customer support","customer service","chat support","email support","ticketing","helpdesk"]},
+ {name:"Recruitment / HR",terms:["recruitment","candidate sourcing","applicant screening","interview scheduling","hr admin","onboarding"]},
+ {name:"Real Estate",terms:["real estate","property management","transaction coordination","listing coordination","mls","real estate crm"]},
+ {name:"E-commerce",terms:["e-commerce","ecommerce","shopify","amazon","product listing","order management","customer orders"]},
+ {name:"Bookkeeping / Finance",terms:["bookkeeping","quickbooks","xero","accounts payable","accounts receivable","invoicing","expense tracking"]},
+ {name:"Operations / SOP",terms:["operations","sop","standard operating procedure","process improvement","workflow","process documentation","operations support"]},
+ {name:"Communication",terms:["communication","written communication","verbal communication","client communication","professional communication"]},
+ {name:"Google Workspace",terms:["google workspace","google docs","google sheets","google drive","gmail","google calendar"]},
+ {name:"Microsoft Office",terms:["microsoft office","excel","word","powerpoint","outlook"]},
+ {name:"AI / Automation",terms:["chatgpt","claude","gemini","ai tools","automation","zapier","make.com","n8n","ai automation"]}
+];
+function familyMatches(text){const low=norm(text);return FIT_FAMILIES.filter(f=>f.terms.some(t=>low.includes(norm(t))))}
+function extractHardSignals(text){
+ const low=String(text||"").toLowerCase(),yrs=[...low.matchAll(/(\d+)\s*(?:\+|plus)?\s*(?:years?|yrs?)(?:\s+of)?\s+(?:experience|exp)/g)].map(x=>+x[1]),s=[];
+ if(/graveyard|night shift|us hours|est hours|pst hours|cst hours/.test(low))s.push("US / night-shift schedule mentioned");
+ if(/uk hours|gmt/.test(low))s.push("UK/GMT schedule mentioned");
+ if(/australia|australian hours|aest/.test(low))s.push("AU schedule mentioned");
+ if(/philippines only|philippines-based|filipino|philippine/.test(low))s.push("Philippines eligibility mentioned");
+ if(/us only|united states only|must reside in the us/.test(low))s.push("US-only location requirement");
+ return{years:yrs.length?Math.max(...yrs):0,schedules:s,explicitNoExperience:/no experience required|entry[- ]level|fresh graduates|fresh graduate|training provided|0[-– ]?1 year/.test(low),degree:/bachelor'?s degree|college degree|degree required/.test(low),portfolio:/portfolio required|portfolio is required|submit.*portfolio/.test(low)}
+}
+function manualFitAnalysis(jobText,job={}){
+ const corpus=profileCorpus(),jobFam=familyMatches(jobText),profileFam=familyMatches(corpus),profileNames=new Set(profileFam.map(x=>x.name)),matched=jobFam.filter(x=>profileNames.has(x.name)),missing=jobFam.filter(x=>!profileNames.has(x.name)),hard=extractHardSignals(jobText),evidence=fitEvidence(corpus,matched.flatMap(x=>x.terms).slice(0,18)),transferable=[];
+ if(!profileNames.has("Project / Task Management")&&/(coordinate|organize|track|deadline|project)/i.test(jobText)&&/(operations|manager|supervis|admin)/i.test(corpus))transferable.push("Your operations/admin experience may transfer to project coordination.");
+ if(!profileNames.has("Customer Support")&&/(customer|client|support)/i.test(jobText)&&/(customer|client|communication)/i.test(corpus))transferable.push("Your client/customer-facing experience may transfer to support work.");
+ if(!profileNames.has("Executive Support")&&/(executive assistant|executive support|founder|ceo)/i.test(jobText)&&/(manager|operations|administrative support|office)/i.test(corpus))transferable.push("Your management/admin background may transfer to executive support, but executive-level ownership should be verified.");
+ if(!profileNames.has("CRM")&&/\bcrm\b/i.test(jobText)&&/(lead|contact|tracker|pipeline|database)/i.test(corpus))transferable.push("Your lead/contact tracking experience may transfer to CRM work; the specific platform still needs verification.");
+ let blocker=false,blockerNotes=[],pref=norm(state.data.profile.location||"");
+ if(/us only|united states only|must reside in the us/.test(norm(jobText))&&/philippines/.test(pref)){blocker=true;blockerNotes.push("Listing appears US-only while your saved profile indicates Philippines.")}
+ const py=yearsEvidence(corpus);
+ if(hard.years>=5&&py!=null&&py<hard.years)blockerNotes.push(`Listing mentions ${hard.years}+ years; your uploaded materials explicitly show about ${py}+ years.`);
+ const coverage=jobFam.length?matched.length/jobFam.length:(evidence.length?0.55:0.35);
+ let verdict="POSSIBLE FIT",tone="warn",reason="";
+ if(blocker){verdict="LIKELY NOT ELIGIBLE";tone="bad";reason="A hard location/eligibility mismatch was detected."}
+ else if(coverage>=0.68||(matched.length>=5&&missing.length<=3)){verdict="GOOD FIT";tone="good";reason="Your saved background covers many of the job's recurring skill areas."}
+ else if(coverage>=0.4||matched.length>=3||transferable.length>=2){verdict="POSSIBLE FIT";tone="warn";reason="There is meaningful overlap, but some requirements still need verification."}
+ else{verdict="STRETCH / LOW EVIDENCE";tone="bad";reason="Your current saved materials show limited evidence for this post. This is an evidence gap, not an automatic rejection."}
+ return{verdict,tone,reason,confidence:state.data.profileDocs.length>=2?"HIGH":state.data.profileDocs.length===1?"MEDIUM":"LOW",matched,missing,transferable,hard,evidence,blockerNotes}
+}
+let lastPastedAnalysis=null;
+function analyzePastedJob(){
+ const text=document.getElementById("manualJD").value.trim();if(!text)return toast("Paste the full job post first");
+ const job={source:document.getElementById("manualSource").value,title:document.getElementById("manualRole").value.trim()||"Untitled Job",company:document.getElementById("manualCompany").value.trim()||"Unknown / Direct Client",url:document.getElementById("manualUrl").value.trim(),description:text,location:"",salaryTextRaw:""};
+ const a=manualFitAnalysis(text,job);lastPastedAnalysis={job,analysis:a};document.getElementById("manualJobResult").innerHTML=renderManualFitResult(job,a)
+}
+function renderManualFitResult(job,a){
+ return `<div class="preview" style="margin-top:14px"><div class="row between"><div><div class="small muted">FIT VERDICT</div><div class="verdict ${a.tone}">${a.verdict}</div><div>${esc(a.reason)}</div></div><span class="pill">Evidence confidence: ${a.confidence}</span></div>
+ <div class="analysis-cols"><div class="analysis-box"><h4>✅ Evidence Matches</h4>${a.matched.length?a.matched.map(x=>`<div class="requirement hit">${esc(x.name)}</div>`).join(""):`<p class="small muted">No strong category matches detected yet.</p>`}</div><div class="analysis-box"><h4>⚠️ Missing / Verify</h4>${a.missing.length?a.missing.map(x=>`<div class="requirement miss">${esc(x.name)}</div>`).join(""):`<p class="small muted">No major category gaps detected.</p>`}</div><div class="analysis-box"><h4>↔ Transferable Evidence</h4>${a.transferable.length?a.transferable.map(x=>`<div class="requirement">${esc(x)}</div>`).join(""):`<p class="small muted">No extra transferable-skill inference needed.</p>`}</div></div>
+ <h4>Hard Requirements / Important Signals</h4><div class="row">${a.hard.explicitNoExperience?`<span class="pill good">Entry-level / no-experience language</span>`:""}${a.hard.years?`<span class="pill warn">${a.hard.years}+ years mentioned</span>`:""}${a.hard.degree?`<span class="pill warn">Degree language detected</span>`:""}${a.hard.portfolio?`<span class="pill warn">Portfolio requested</span>`:""}${a.hard.schedules.map(x=>`<span class="pill">${esc(x)}</span>`).join("")}</div>
+ ${a.blockerNotes.length?a.blockerNotes.map(x=>`<div class="requirement miss">${esc(x)}</div>`).join(""):""}
+ <h4>Evidence Found in Your Career Vault</h4>${a.evidence.length?a.evidence.slice(0,6).map(e=>`<div class="evidence">${esc(e.snippet)}</div>`).join(""):`<p class="small muted">Upload/paste richer resume or portfolio text for more specific evidence.</p>`}
+ <div class="actions" style="margin-top:12px"><button class="btn" onclick="savePastedJobToTracker()">Save to Tracker</button><button class="btn primary" onclick="generatePastedJobApplication()">Generate Application Kit</button><button class="btn" onclick="addPastedJobPracticePlan()">Create Gap / Prep Tasks</button></div><div id="pastedJobApplication"></div></div>`
+}
+function savePastedJobToTracker(){
+ if(!lastPastedAnalysis)return;const {job,analysis:a}=lastPastedAnalysis;
+ let r=state.data.jobs.find(x=>job.url&&x.url===job.url);
+ if(!r){r={id:uid(),role:job.title,company:job.company,platform:job.source,url:job.url,status:"SAVED",salary:"—",date:today(),fitScore:null,fitVerdict:a.verdict,followUp:"",notes:`Manual full-post analysis: ${a.verdict}`};state.data.jobs.unshift(r)}else{r.fitVerdict=a.verdict;r.notes=`Manual full-post analysis: ${a.verdict}`};save();toast("Job + verdict saved to Tracker")
+}
+function generatePastedJobApplication(){
+ if(!lastPastedAnalysis)return;const {job,analysis:a}=lastPastedAnalysis;
+ const pseudo={score:a.verdict==="GOOD FIT"?80:a.verdict==="POSSIBLE FIT"?62:a.verdict==="LIKELY NOT ELIGIBLE"?20:40,label:a.verdict,matchedSkills:a.matched.map(x=>x.name),missingSkills:a.missing.map(x=>x.name),evidence:a.evidence,locNote:a.blockerNotes.join(" ")||"Verify location/schedule requirements."};
+ const kit=groundedKit(job,pseudo);
+ document.getElementById("pastedJobApplication").innerHTML=`<hr><h3>Application Kit</h3><p class="small muted">Built from the complete pasted post + your Career Profile Vault. Review before sending.</p><div class="tabs"><button class="tab active" onclick="switchManualKit('cover',this)">Cover Letter</button><button class="tab" onclick="switchManualKit('email',this)">Application Email</button><button class="tab" onclick="switchManualKit('interview',this)">Interview Prep</button></div><textarea id="manualkitcover" class="kitarea">${esc(kit.cover)}</textarea><textarea id="manualkitemail" class="kitarea hidden">${esc(kit.email)}</textarea><textarea id="manualkitinterview" class="kitarea hidden">${esc(kit.interview)}</textarea><div class="actions"><button class="btn primary" onclick="copyManualKit()">Copy</button><button class="btn" onclick="downloadManualKit()">Download TXT</button></div>`
+}
+function switchManualKit(k,b){["cover","email","interview"].forEach(x=>document.getElementById("manualkit"+x)?.classList.toggle("hidden",x!==k));b.parentElement.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active")}
+function currentManualKit(){return["manualkitcover","manualkitemail","manualkitinterview"].map(id=>document.getElementById(id)).find(x=>x&&!x.classList.contains("hidden"))}
+function copyManualKit(){const e=currentManualKit();if(e)copyText(e.value)}
+function downloadManualKit(){const e=currentManualKit();if(e)downloadText("pasted-job-application.txt",e.value)}
+function addPastedJobPracticePlan(){
+ if(!lastPastedAnalysis)return;const {job,analysis:a}=lastPastedAnalysis,t=[];
+ a.missing.slice(0,5).forEach(x=>t.push({title:`Verify / learn: ${x.name}`,desc:`For ${job.title}. Determine whether this is REQUIRED or PREFERRED, then decide whether you already have transferable evidence or need practice.`,priority:"MEDIUM"}));
+ if(a.hard.years)t.push({title:`Check ${a.hard.years}+ years requirement`,desc:"Verify whether it is required or preferred and compare it honestly with your actual experience.",priority:"HIGH"});
+ if(a.hard.schedules.length)t.push({title:"Verify schedule / timezone fit",desc:a.hard.schedules.join("; "),priority:"HIGH"});
+ t.forEach(x=>state.data.tasks.push({id:uid(),title:x.title,desc:x.desc,status:"TO DO",priority:x.priority,due:""}));save();toast(`${t.length} prep task${t.length===1?"":"s"} added to Desk`)
+}
+function clearPastedJob(){["manualRole","manualCompany","manualUrl","manualJD"].forEach(id=>{const e=document.getElementById(id);if(e)e.value=""});document.getElementById("manualJobResult").innerHTML="";lastPastedAnalysis=null}
+
+function jobCards(arr){
+ return arr.length?arr.slice(0,100).map(j=>`<article class="job card"><div class="row between"><div class="source">${esc(j.source)}</div><span class="pill ${j.freshness==="24H DELAYED"?"warn":""}">${esc(j.freshness||"SOURCE")}</span></div><h3>${esc(j.title)}</h3><div class="company">${esc(j.company)} · ${esc(j.location||"Location not specified")}</div><div class="jobmeta"><span class="pill">${esc(j.type||"Job")}</span><span class="pill ${salaryText(j)!=="Salary not listed"?"good":""}">${esc(salaryText(j))}</span>${j.entryFlag?`<span class="pill ${j.entryFlag==="VERIFIED"?"good":"warn"}">${j.entryFlag==="VERIFIED"?"Entry-level stated":"Possible beginner fit"}</span>`:""}${j.negFlag?`<span class="pill warn">${j.negFlag==="EXPLICIT"?"Negotiable stated":"Negotiation signal"}</span>`:""}</div><div class="jobdesc">${esc(j.description)}</div><div class="small muted">Posted: ${fmtDate(j.pubDate)}</div><div class="actions"><a class="btn sm" href="${esc(j.url)}" target="_blank" rel="noopener">View Original</a><button class="btn sm" onclick="saveDiscoveryJob('${encodeURIComponent(j.id)}')">Save to Tracker</button><button class="btn sm" onclick="useFeedJobInAnalyzer('${encodeURIComponent(j.id)}')">Use in Analyzer</button><button class="btn primary sm" onclick="applyTrack('${encodeURIComponent(j.id)}')">Apply & Track ↗</button></div></article>`).join(""):`<div class="empty" style="grid-column:1/-1">No jobs match these filters.</div>`;
+}
+function findLive(id){return state.liveJobs.find(j=>j.id===decodeURIComponent(id))}
+function saveJobRecord(j,status="SAVED"){
+ let r=state.data.jobs.find(x=>j.url&&x.url===j.url);
+ if(!r){r={id:uid(),role:j.title,company:j.company,platform:j.source,url:j.url,status,salary:salaryText(j),date:today(),openedAt:null,appliedAt:null,replyAt:null,fitScore:null,fitVerdict:"NOT ANALYZED",followUp:"",notes:""};state.data.jobs.unshift(r)}
+ else if(status)r.status=status;
+ save();return r
+}
+function saveDiscoveryJob(id){const j=findLive(id);if(!j)return;const r=saveJobRecord(j,"SAVED");r.fitScore=null;r.fitVerdict=r.fitVerdict||"NOT ANALYZED";save();toast("Saved to Application Tracker")}
+function applyTrack(id){const j=findLive(id);if(!j)return;const r=saveJobRecord(j,"APPLICATION OPENED");r.openedAt=new Date().toISOString();r.fitScore=null;r.fitVerdict=r.fitVerdict||"NOT ANALYZED";save();window.open(j.url,"_blank","noopener");toast("Application opened and added to Tracker")}
+function useFeedJobInAnalyzer(id){const j=findLive(id);if(!j)return;document.getElementById("manualSource").value="Other";document.getElementById("manualRole").value=j.title||"";document.getElementById("manualCompany").value=j.company||"";document.getElementById("manualUrl").value=j.url||"";document.getElementById("manualJD").value=j.description||"";document.getElementById("manualJobAnalyzer").scrollIntoView({behavior:"smooth",block:"start"});toast("Feed text loaded. Replace with the complete original post when possible.")}
+function openBoardSearch(board){
+ const q=(document.getElementById("boardQuery")?.value||state.data.settings.jobKeywords||"remote").trim();
+ const loc=document.getElementById("boardLocation")?.value||"Remote / Anywhere";
+ const enc=encodeURIComponent(q),where=encodeURIComponent(loc==="Philippines"?"Philippines":loc==="Worldwide"?"remote worldwide":"remote");
+ const urls={
+  linkedin:`https://www.linkedin.com/jobs/search/?keywords=${enc}&location=${where}`,
+  indeed:`https://ph.indeed.com/jobs?q=${enc}&l=${where}`,
+  jobstreet:`https://ph.jobstreet.com/${encodeURIComponent(q.replace(/\\s+/g,"-"))}-jobs`,
+  olj:`https://www.onlinejobs.ph/jobseekers/jobsearch`,
+  vaworkers:"https://vaworkersph.com/",
+  google:`https://www.google.com/search?q=${encodeURIComponent(q+" jobs "+(loc==="Philippines"?"Philippines":"remote"))}`
+ };
+ window.open(urls[board],"_blank","noopener");
+}
+function renderTracker(){const j=state.data.jobs,submitted=j.filter(x=>["APPLIED","REPLIED","INTERVIEW","OFFER","REJECTED","NO RESPONSE","CLOSED"].includes(x.status)).length,replies=j.filter(x=>["REPLIED","INTERVIEW","OFFER"].includes(x.status)).length,interviews=j.filter(x=>["INTERVIEW","OFFER"].includes(x.status)).length,offers=j.filter(x=>x.status==="OFFER").length,p=(n,d)=>d?Math.round(n/d*100):0;return `<div class="head"><div><div class="eyebrow">Application pipeline</div><h2 class="title">Application Tracker</h2><p class="muted">Clicking Apply & Track adds the job automatically. You confirm actual submission when you return.</p></div><button class="btn primary" onclick="openManualJob()">＋ Add Manually</button></div><div class="grid"><div class="card pad c3"><div class="small muted">Submitted</div><div class="stat">${submitted}</div></div><div class="card pad c3"><div class="small muted">Reply rate</div><div class="stat">${p(replies,submitted)}%</div></div><div class="card pad c3"><div class="small muted">Interview conversion</div><div class="stat">${p(interviews,submitted)}%</div></div><div class="card pad c3"><div class="small muted">Offer conversion</div><div class="stat">${p(offers,submitted)}%</div></div></div>${j.some(x=>x.status==="APPLICATION OPENED")?`<section class="card pad" style="margin-top:15px"><h3>Needs submission confirmation</h3>${j.filter(x=>x.status==="APPLICATION OPENED").map(x=>`<div class="list-item"><strong>${esc(x.role)} — ${esc(x.company)}</strong><p>Application page opened ${x.openedAt?new Date(x.openedAt).toLocaleString():""}</p><div class="actions"><button class="btn good sm" onclick="confirmApplied('${x.id}')">Yes, Submitted</button><button class="btn sm" onclick="jobStatus('${x.id}','SAVED')">Not Yet</button></div></div>`).join("")}</section>`:""}<section class="card pad" style="margin-top:15px">${j.length?`<div class="table"><table><thead><tr><th>Role</th><th>Company</th><th>Source</th><th>Salary</th><th>Assessment</th><th>Status</th><th>Follow-Up</th><th></th></tr></thead><tbody>${j.map(x=>`<tr><td>${esc(x.role)}</td><td>${esc(x.company)}</td><td>${esc(x.platform)}</td><td>${esc(x.salary||"—")}</td><td>${esc(x.fitVerdict||"NOT ANALYZED")}</td><td><select onchange="jobStatus('${x.id}',this.value)">${["SAVED","REVIEWING","APPLICATION OPENED","APPLIED","FOLLOW-UP","REPLIED","INTERVIEW","OFFER","REJECTED","NO RESPONSE","CLOSED"].map(st=>`<option ${x.status===st?"selected":""}>${st}</option>`).join("")}</select></td><td><input type="date" value="${esc(x.followUp||"")}" onchange="setFollowup('${x.id}',this.value)"></td><td><div class="actions">${x.url?`<a class="btn sm" target="_blank" rel="noopener" href="${esc(x.url)}">Open</a>`:""}<button class="btn sm bad" onclick="deleteJob('${x.id}')">Delete</button></div></td></tr>`).join("")}</tbody></table></div>`:'<div class="empty">No tracked jobs yet.</div>'}</section>`}
+function confirmApplied(id){const x=state.data.jobs.find(j=>j.id===id);if(x){x.status="APPLIED";x.appliedAt=new Date().toISOString();save();render();toast("Marked as submitted")}}
+function setFollowup(id,d){const x=state.data.jobs.find(j=>j.id===id);if(x){x.followUp=d;save()}}
+
+function openManualJob(){modal(`<h3>Add Job</h3><div class="form2"><div><label>Role</label><input id="mrole" class="input"></div><div><label>Company</label><input id="mcompany" class="input"></div><div><label>Source</label><input id="mplatform" class="input"></div><div><label>Salary / Rate</label><input id="msalary" class="input"></div></div><label style="margin-top:9px">URL</label><input id="murl" class="input"><button class="btn primary" style="margin-top:10px" onclick="addManualJob()">Save</button>`)}
+function addManualJob(){state.data.jobs.unshift({id:uid(),role:document.getElementById("mrole").value,company:document.getElementById("mcompany").value,platform:document.getElementById("mplatform").value,salary:document.getElementById("msalary").value,url:document.getElementById("murl").value,status:"SAVED",date:today(),fitScore:null,fitVerdict:"NOT ANALYZED",followUp:""});save();closeModal();render()}
+function jobStatus(id,s){const j=state.data.jobs.find(x=>x.id===id);if(j){j.status=s;if(s==="APPLIED"&&!j.appliedAt)j.appliedAt=new Date().toISOString();if(s==="REPLIED"&&!j.replyAt)j.replyAt=new Date().toISOString()}save();render()}function deleteJob(id){state.data.jobs=state.data.jobs.filter(x=>x.id!==id);save();render()}
+
+function toolCard(t){return `<article class="toolcard card"><div class="cat">${t.c.toUpperCase()}</div><h4>${t.n}</h4><p>${t.d}</p><button class="btn" onclick="openTool('${t.a}')">Open Tool</button></article>`}
+function renderTools(){
+ const cats=["All",...new Set(toolDefs.map(x=>x.c))],shown=state.toolCat==="All"?toolDefs:toolDefs.filter(x=>x.c===state.toolCat);
+ return `<div class="head"><div><div class="eyebrow">Free local utilities</div><h2 class="title">Tools</h2><p class="muted">These tools run in your browser unless explicitly linked to an external service.</p></div></div>${tabs(cats,state.toolCat,"setToolCat")}<div class="toolgrid">${shown.map(toolCard).join("")}</div>`;
+}
+function setToolCat(c){state.toolCat=c;render()}
+function openTool(a){
+ if(a==="focus")return toggleFocus();
+ const title=toolDefs.find(x=>x.a===a)?.n||"Tool";let b="";
+ const textBox=`<textarea id="tin" placeholder="Paste or type here..."></textarea><textarea id="tout" placeholder="Output..." readonly></textarea>`;
+ if(a==="word")b=`<textarea id="tin" oninput="countText()" placeholder="Type or paste text..."></textarea><div id="tout" class="preview stat">0 words</div>`;
+ if(a==="clean")b=`${textBox}<button class="btn primary" onclick="textClean()">Clean</button>`;
+ if(a==="case")b=`<textarea id="tin"></textarea><div class="actions"><button class="btn" onclick="caseIt('upper')">UPPER</button><button class="btn" onclick="caseIt('lower')">lower</button><button class="btn" onclick="caseIt('title')">Title Case</button><button class="btn" onclick="caseIt('sentence')">Sentence case</button></div><textarea id="tout" readonly></textarea>`;
+ if(a==="dedupe")b=`${textBox}<button class="btn primary" onclick="dedupe()">Remove Duplicates</button>`;
+ if(a==="sort")b=`${textBox}<button class="btn primary" onclick="sortLines()">Sort</button>`;
+ if(a==="slug")b=`<input id="tin" class="input"><div id="tout" class="preview"></div><button class="btn primary" onclick="slugIt()">Generate Slug</button>`;
+ if(a==="json")b=`${textBox}<button class="btn primary" onclick="formatJSON()">Format & Validate</button>`;
+ if(a==="csvjson")b=`${textBox}<button class="btn primary" onclick="csvJSON()">Convert</button>`;
+ if(a==="jsoncsv")b=`${textBox}<button class="btn primary" onclick="jsonCSV()">Convert</button>`;
+ if(a==="url")b=`${textBox}<div class="actions"><button class="btn" onclick="urlCode(true)">Encode</button><button class="btn" onclick="urlCode(false)">Decode</button></div>`;
+ if(a==="base64")b=`${textBox}<div class="actions"><button class="btn" onclick="b64(true)">Encode</button><button class="btn" onclick="b64(false)">Decode</button></div>`;
+ if(a==="timestamp")b=`<input id="tin" class="input" placeholder="Unix timestamp or date"><div id="tout" class="preview"></div><button class="btn primary" onclick="timestamp()">Convert</button>`;
+ if(a==="password")b=`<div class="form2"><div><label>Length</label><input id="plen" type="number" class="input" value="20" min="8" max="100"></div><div><label>Include symbols</label><select id="psym" class="input"><option>Yes</option><option>No</option></select></div></div><div id="tout" class="preview"></div><button class="btn primary" onclick="password()">Generate</button>`;
+ if(a==="random")b=`<textarea id="tin" placeholder="One item per line"></textarea><div id="tout" class="preview"></div><button class="btn primary" onclick="randomPick()">Pick One</button>`;
+ if(a==="datediff")b=`<div class="form2"><div><label>Start</label><input id="d1" type="date" class="input"></div><div><label>End</label><input id="d2" type="date" class="input"></div></div><div id="tout" class="preview"></div><button class="btn primary" onclick="dateDiff()">Calculate</button>`;
+ if(a==="rate")b=`<div class="form3"><div><label>Hourly rate</label><input id="rr" type="number" class="input" value="5"></div><div><label>Hours/week</label><input id="rh" type="number" class="input" value="40"></div><div><label>Currency</label><input id="rc" class="input" value="USD"></div></div><div id="tout" class="preview"></div><button class="btn primary" onclick="rateCalc()">Calculate</button>`;
+ if(a==="currency")b=`<p class="small muted">Uses Frankfurter's free daily reference-rate API. No API key required. These are reference exchange rates, not real-time trading quotes.</p><div class="form3"><div><label>Amount</label><input id="fxamt" type="number" class="input" value="1" step="any"></div><div><label>From</label><select id="fxfrom" class="input">${["USD","PHP","EUR","GBP","AUD","CAD","JPY","SGD","NZD","CHF","HKD"].map(x=>`<option ${x==="USD"?"selected":""}>${x}</option>`).join("")}</select></div><div><label>To</label><select id="fxto" class="input">${["PHP","USD","EUR","GBP","AUD","CAD","JPY","SGD","NZD","CHF","HKD"].map(x=>`<option ${x==="PHP"?"selected":""}>${x}</option>`).join("")}</select></div></div><div id="tout" class="preview">Choose currencies and convert.</div><button class="btn primary" onclick="convertCurrency()">Convert</button>`;
+ if(a==="conversion")b=`<p class="small muted">Useful for leads, applications, sales, landing pages, outreach, ads and other funnels.</p><div class="form2"><div><label>Total visitors / leads / opportunities</label><input id="convtotal" type="number" class="input" value="100"></div><div><label>Conversions / desired outcomes</label><input id="convdone" type="number" class="input" value="10"></div></div><div id="tout" class="preview"></div><button class="btn primary" onclick="calcConversionRate()">Calculate Conversion Rate</button>`;
+ if(a==="timezone")b=`<div id="tout"></div><button class="btn" onclick="worldClock()">Refresh</button>`;
+ if(a==="typing")b=`<p class="preview">The best systems reduce repeated decisions and make important work easier to complete consistently.</p><textarea id="typein" placeholder="Click Start, then type the sentence above..." disabled></textarea><div id="tout" class="preview"></div><button class="btn primary" onclick="startTyping()">Start 60s Test</button>`;
+ if(a==="color")b=`<input id="cpick" type="color" value="#5a4d78" style="width:100%;height:90px;border:0" oninput="showColor()"><div id="tout" class="preview"></div>`;
+ if(a==="gradient")b=`<div class="form2"><input id="g1" type="color" value="#5a4d78"><input id="g2" type="color" value="#e4dbea"></div><div id="tout" class="preview" style="height:120px"></div><button class="btn primary" onclick="gradient()">Generate CSS</button>`;
+ if(a==="social")b=`<div class="form2"><div><label>Headline</label><input id="shead" class="input" value="Your headline here"></div><div><label>Background</label><input id="sbg" type="color" value="#f7f4ef"></div><div><label>Text</label><input id="stc" type="color" value="#252427"></div><div><label>Footer</label><input id="sfoot" class="input" value="Freelance Desk"></div></div><canvas id="canvasPreview" width="1080" height="1080"></canvas><div class="actions"><button class="btn" onclick="drawSocial()">Preview</button><button class="btn primary" onclick="downloadCanvas('social-post.png')">Download PNG</button></div>`;
+ if(a==="phone")b=`<input id="phonefile" type="file" accept="image/*" class="input" onchange="phonePreview(this.files[0])"><div class="phone" id="phoneprev"><span class="muted small">Upload an image</span></div>`;
+ if(a==="image")b=`<input id="imgfile" type="file" accept="image/*" class="input"><div class="form2" style="margin-top:10px"><div><label>Max width</label><input id="imgw" type="number" class="input" value="1200"></div><div><label>JPEG quality</label><input id="imgq" type="number" class="input" value="0.82" step="0.05" min="0.1" max="1"></div></div><canvas id="canvasPreview" class="hidden"></canvas><button class="btn primary" onclick="resizeImage()">Resize & Download JPEG</button>`;
+ if(a==="favicon")b=`<input id="favtxt" class="input" maxlength="3" value="FD"><input id="favbg" type="color" value="#5a4d78" style="margin-top:10px"><canvas id="canvasPreview" width="64" height="64"></canvas><button class="btn primary" onclick="makeFavicon()">Download PNG</button>`;
+ if(a==="agenda")b=builder(["Meeting title","Objective","Attendees","Agenda items","Decisions needed"],"MEETING AGENDA");
+ if(a==="sop")b=builder(["SOP title","Purpose","Trigger","Steps","Quality checks / escalation"],"STANDARD OPERATING PROCEDURE");
+ if(a==="eod")b=builder(["Completed","Pending","Risks / blockers","Tomorrow preview"],"END-OF-DAY REPORT");
+ if(a==="decision")b=builder(["Problem","Option 1","Option 2","Option 3","Recommendation / why"],"1-3-1 DECISION");
+ if(a==="negotiation")b=builder(["Role / project","Listed rate or range","My target rate","Evidence / scope factors","Negotiation message points"],"RATE NEGOTIATION NOTES");
+ if(a==="interview")b=builder(["Company / role","What they need","My matching experience","Questions to ask","Examples to prepare"],"INTERVIEW PREP");
+ if(a==="followup")b=`<label>Context</label><textarea id="tin"></textarea><label>Next action requested</label><input id="nextact" class="input"><textarea id="tout" readonly></textarea><button class="btn primary" onclick="followupDraft()">Build Draft</button>`;
+ if(a==="jobfit")b=jobFitBody("");
+ if(a==="resume")b=`<h4>ATS-Friendly Resume Checklist</h4>${["Clear role-focused headline","Contact information","Relevant skills/tools","Experience uses truthful action + context + outcome","Keywords match the target role naturally","No fake metrics or clients","Simple readable formatting","Portfolio link works","File name is professional","Final spelling/grammar review"].map((x,i)=>`<label class="list-item"><input type="checkbox"> ${x}</label>`).join("")}`;
+ modal(`<div class="cat">FUNCTIONAL FREE TOOL</div><h3>${title}</h3>${b}`);
+ if(a==="timezone")worldClock();if(a==="color")showColor();if(a==="gradient")gradient();if(a==="social")setTimeout(drawSocial,30);if(a==="favicon")setTimeout(makeFaviconPreview,30);
+}
+function builder(fields,title){return fields.map((f,i)=>`<label>${f}</label><textarea id="b${i}"></textarea>`).join("")+`<button class="btn primary" onclick="copyBuilder(${fields.length},'${title}')">Copy Structured Output</button>`}
+function copyBuilder(n,title){let s=title+"\n\n";for(let i=0;i<n;i++)s+=document.querySelector(`label[for="b${i}"]`)?.textContent||"";const vals=[...Array(n)].map((_,i)=>document.getElementById("b"+i).value);copyText(title+"\n\n"+vals.map((v,i)=>`${i+1}. ${v}`).join("\n\n"))}
+function countText(){const s=document.getElementById("tin").value,w=s.trim()?s.trim().split(/\s+/).length:0,sen=(s.match(/[.!?]+/g)||[]).length,par=s.trim()?s.trim().split(/\n\s*\n/).length:0;document.getElementById("tout").textContent=`${w} words · ${s.length} characters · ${sen} sentences · ${par} paragraphs`}
+function textClean(){document.getElementById("tout").value=document.getElementById("tin").value.replace(/[ \t]+/g," ").replace(/\n{3,}/g,"\n\n").trim()}
+function caseIt(k){let s=document.getElementById("tin").value;if(k==="upper")s=s.toUpperCase();if(k==="lower")s=s.toLowerCase();if(k==="title")s=s.toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());if(k==="sentence")s=s.toLowerCase().replace(/(^\s*\w|[.!?]\s+\w)/g,c=>c.toUpperCase());document.getElementById("tout").value=s}
+function dedupe(){document.getElementById("tout").value=[...new Set(document.getElementById("tin").value.split(/\r?\n/))].join("\n")}
+function sortLines(){document.getElementById("tout").value=document.getElementById("tin").value.split(/\r?\n/).sort((a,b)=>a.localeCompare(b)).join("\n")}
+function slugIt(){document.getElementById("tout").textContent=document.getElementById("tin").value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function formatJSON(){try{document.getElementById("tout").value=JSON.stringify(JSON.parse(document.getElementById("tin").value),null,2);toast("Valid JSON")}catch(e){document.getElementById("tout").value="Invalid JSON: "+e.message}}
+function parseCSV(s){const lines=s.trim().split(/\r?\n/),heads=lines.shift().split(",").map(x=>x.trim());return lines.map(l=>{const v=l.split(",");return Object.fromEntries(heads.map((h,i)=>[h,(v[i]||"").trim()]))})}
+function csvJSON(){try{document.getElementById("tout").value=JSON.stringify(parseCSV(document.getElementById("tin").value),null,2)}catch(e){document.getElementById("tout").value=e.message}}
+function jsonCSV(){try{const a=JSON.parse(document.getElementById("tin").value);if(!Array.isArray(a)||!a.length)throw Error("Use a non-empty array of flat objects.");const h=[...new Set(a.flatMap(Object.keys))];const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;document.getElementById("tout").value=h.map(q).join(",")+"\n"+a.map(o=>h.map(k=>q(o[k])).join(",")).join("\n")}catch(e){document.getElementById("tout").value=e.message}}
+function urlCode(enc){try{document.getElementById("tout").value=enc?encodeURIComponent(document.getElementById("tin").value):decodeURIComponent(document.getElementById("tin").value)}catch(e){document.getElementById("tout").value=e.message}}
+function b64(enc){try{const v=document.getElementById("tin").value;document.getElementById("tout").value=enc?btoa(unescape(encodeURIComponent(v))):decodeURIComponent(escape(atob(v)))}catch(e){document.getElementById("tout").value=e.message}}
+function timestamp(){const v=document.getElementById("tin").value.trim();let d=/^\d+$/.test(v)?new Date(Number(v)*(v.length<=10?1000:1)):new Date(v);document.getElementById("tout").textContent=isNaN(d)?"Invalid input":`${d.toString()} · Unix: ${Math.floor(d.getTime()/1000)}`}
+function password(){const len=Math.min(100,Math.max(8,+document.getElementById("plen").value||20)),chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789"+(document.getElementById("psym").value==="Yes"?"!@#$%^&*_-+=":"");const a=new Uint32Array(len);crypto.getRandomValues(a);document.getElementById("tout").textContent=[...a].map(x=>chars[x%chars.length]).join("")}
+function randomPick(){const a=document.getElementById("tin").value.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);document.getElementById("tout").textContent=a.length?a[Math.floor(Math.random()*a.length)]:"Add items first."}
+function dateDiff(){const a=new Date(document.getElementById("d1").value),b=new Date(document.getElementById("d2").value);document.getElementById("tout").textContent=isNaN(a)||isNaN(b)?"Choose both dates.":`${Math.abs(Math.round((b-a)/86400000))} days`}
+function rateCalc(){const r=+document.getElementById("rr").value,h=+document.getElementById("rh").value,c=document.getElementById("rc").value;document.getElementById("tout").innerHTML=`Weekly: <strong>${c} ${(r*h).toFixed(2)}</strong><br>Monthly estimate (52 weeks ÷ 12): <strong>${c} ${(r*h*52/12).toFixed(2)}</strong><br>Annual estimate: <strong>${c} ${(r*h*52).toFixed(2)}</strong>`}
+async function convertCurrency(){
+ const amount=+document.getElementById("fxamt").value,from=document.getElementById("fxfrom").value,to=document.getElementById("fxto").value,out=document.getElementById("tout");
+ if(!(amount>=0))return out.textContent="Enter a valid amount.";
+ if(from===to)return out.innerHTML=`<strong>${amount.toLocaleString()} ${from}</strong> = <strong>${amount.toLocaleString()} ${to}</strong>`;
+ out.textContent="Fetching latest daily reference rate…";
+ try{
+  const r=await fetch(`https://api.frankfurter.dev/v1/latest?base=${encodeURIComponent(from)}&symbols=${encodeURIComponent(to)}`);
+  if(!r.ok)throw Error("Rate service unavailable");
+  const d=await r.json(),rate=d.rates?.[to];
+  if(!rate)throw Error("Rate unavailable");
+  const converted=amount*rate;
+  out.innerHTML=`<div class="stat">${converted.toLocaleString(undefined,{maximumFractionDigits:4})} ${to}</div><p><strong>1 ${from}</strong> = ${Number(rate).toLocaleString(undefined,{maximumFractionDigits:6})} ${to}</p><p class="small muted">Reference date: ${esc(d.date||"latest available working day")}</p>`;
+ }catch(e){out.innerHTML=`<span class="pill bad">Could not load the exchange rate.</span><p class="small muted">Try again when online.</p>`}
+}
+function calcConversionRate(){
+ const total=+document.getElementById("convtotal").value,done=+document.getElementById("convdone").value,out=document.getElementById("tout");
+ if(total<=0||done<0)return out.textContent="Enter valid numbers; total must be greater than 0.";
+ const rate=(done/total)*100;
+ out.innerHTML=`<div class="stat">${rate.toFixed(2)}%</div><p>${done.toLocaleString()} conversions ÷ ${total.toLocaleString()} total opportunities × 100</p>`;
+}
+function worldClock(){const z=[["Manila","Asia/Manila"],["New York","America/New_York"],["London","Europe/London"],["Sydney","Australia/Sydney"]];document.getElementById("tout").innerHTML=z.map(([n,t])=>`<div class="list-item"><strong>${n}</strong><br>${new Intl.DateTimeFormat(undefined,{timeZone:t,dateStyle:"medium",timeStyle:"short"}).format(new Date())}</div>`).join("")}
+let typeStart,typeTimer;function startTyping(){const i=document.getElementById("typein");i.disabled=false;i.value="";i.focus();typeStart=Date.now();clearTimeout(typeTimer);document.getElementById("tout").textContent="Timer running…";typeTimer=setTimeout(()=>{i.disabled=true;const words=i.value.trim()?i.value.trim().split(/\s+/).length:0;document.getElementById("tout").textContent=`${words} WPM (raw words typed in 60 seconds)`},60000)}
+function showColor(){const h=document.getElementById("cpick").value,r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);document.getElementById("tout").innerHTML=`HEX <strong>${h.toUpperCase()}</strong><br>RGB <strong>rgb(${r}, ${g}, ${b})</strong>`}
+function gradient(){const a=document.getElementById("g1").value,b=document.getElementById("g2").value,css=`linear-gradient(135deg, ${a}, ${b})`;const o=document.getElementById("tout");o.style.background=css;o.textContent=css}
+function drawSocial(){const c=document.getElementById("canvasPreview"),x=c.getContext("2d"),bg=document.getElementById("sbg").value,tc=document.getElementById("stc").value,h=document.getElementById("shead").value,f=document.getElementById("sfoot").value;x.fillStyle=bg;x.fillRect(0,0,c.width,c.height);x.fillStyle=tc;x.font="bold 70px Arial";x.textAlign="center";wrapCanvas(x,h,540,430,850,90);x.font="28px Arial";x.fillText(f,540,940)}
+function wrapCanvas(ctx,text,x,y,max,w){const words=text.split(" "),lines=[];let line="";for(const word of words){const test=line+word+" ";if(ctx.measureText(test).width>max&&line){lines.push(line);line=word+" "}else line=test}lines.push(line);lines.forEach((l,i)=>ctx.fillText(l.trim(),x,y+i*w))}
+function downloadCanvas(name){const c=document.getElementById("canvasPreview");const a=document.createElement("a");a.download=name;a.href=c.toDataURL("image/png");a.click()}
+function phonePreview(file){if(!file)return;const r=new FileReader();r.onload=()=>document.getElementById("phoneprev").innerHTML=`<img src="${r.result}" alt="Preview">`;r.readAsDataURL(file)}
+function resizeImage(){const file=document.getElementById("imgfile").files[0];if(!file)return toast("Choose an image");const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const max=+document.getElementById("imgw").value||1200,scale=Math.min(1,max/im.width),c=document.getElementById("canvasPreview");c.width=Math.round(im.width*scale);c.height=Math.round(im.height*scale);c.getContext("2d").drawImage(im,0,0,c.width,c.height);const a=document.createElement("a");a.download="resized-image.jpg";a.href=c.toDataURL("image/jpeg",Math.min(1,Math.max(.1,+document.getElementById("imgq").value||.82)));a.click()};im.src=r.result};r.readAsDataURL(file)}
+function makeFaviconPreview(){const c=document.getElementById("canvasPreview");if(!c)return;const x=c.getContext("2d");x.fillStyle=document.getElementById("favbg").value;x.fillRect(0,0,64,64);x.fillStyle="#fff";x.font="bold 25px Arial";x.textAlign="center";x.textBaseline="middle";x.fillText(document.getElementById("favtxt").value||"FD",32,32)}
+function makeFavicon(){makeFaviconPreview();downloadCanvas("favicon.png")}
+function followupDraft(){const c=document.getElementById("tin").value.trim(),n=document.getElementById("nextact").value.trim();document.getElementById("tout").value=`Hi,\n\nFollowing up regarding ${c||"the item we discussed"}. ${n?`Could you please confirm ${n}?`:"Could you please confirm the next step when convenient?"}\n\nThank you.`}
+function jobFitBody(desc){return `<p class="small muted">Rule-based local analysis. It does not fabricate experience or pretend to be AI.</p><label>Your skills/tools (comma-separated)</label><input id="skills" class="input" value="${esc((state.data.profile.niches||[]).join(", "))}, Google Workspace, Communication, Research"><label style="margin-top:8px">Job description</label><textarea id="jd">${esc(desc)}</textarea><div id="fitout" class="preview"></div><button class="btn primary" onclick="jobFit()">Analyze</button>`}
+function openJobAnalyzer(desc,title){modal(`<div class="cat">JOB FIT ANALYZER</div><h3>${esc(title)}</h3>${jobFitBody(desc)}`)}
+function jobFit(){const sk=document.getElementById("skills").value.split(",").map(x=>x.trim()).filter(Boolean),d=document.getElementById("jd").value.toLowerCase();if(!d)return toast("Add a job description");const m=sk.filter(s=>d.includes(s.toLowerCase())),score=Math.round(m.length/Math.max(sk.length,1)*100),exp=/(no experience|entry[- ]level|fresh graduate|training provided|0[-– ]?1 year)/i.test(d),neg=/(negotiable|depending on experience|\bdoe\b|based on experience|based on skills)/i.test(d),red=[];if(/unpaid trial|pay to apply|purchase.*equipment/i.test(d))red.push("Potential payment/trial concern");document.getElementById("fitout").innerHTML=`<div class="stat">${score}% keyword match</div><p><strong>Matched:</strong> ${esc(m.join(", ")||"No exact saved keywords.")}</p><p><strong>Entry-level language:</strong> ${exp?"Explicit phrase detected":"Not explicitly detected"}</p><p><strong>Negotiation language:</strong> ${neg?"Explicit signal detected":"Not explicitly detected"}</p>${red.length?`<p class="pill bad">${red.join(", ")}</p>`:""}<p class="small muted">This score is explainable keyword matching only; it is not a hiring prediction.</p>`}
+
+function renderWorkflows(){const cats=["All",...new Set(workflows.map(x=>x.cat))],shown=state.workflowCat==="All"?workflows:workflows.filter(x=>x.cat===state.workflowCat);return `<div class="head"><div><div class="eyebrow">Real examples, not empty labels</div><h2 class="title">Workflow Library</h2><p class="muted">Each workflow includes a scenario, inputs, steps, quality checks, tools and a worked example.</p></div></div>${tabs(cats,state.workflowCat,"setWorkflowCat")}<div class="guidegrid">${shown.map(w=>`<article class="guidecard card"><div class="cat">${esc(w.cat)}</div><h4>${esc(w.title)}</h4><p>${esc(w.scenario)}</p><div class="row"><span class="pill">${w.steps.length} steps</span><span class="pill">${w.qa.length} QA checks</span></div><button class="btn" style="margin-top:10px" onclick="openWorkflow('${w.id}')">Open Example</button></article>`).join("")}</div>`}
+function setWorkflowCat(c){state.workflowCat=c;render()}
+function openWorkflow(id){const w=workflows.find(x=>x.id===id);modal(`<div class="cat">${esc(w.cat)}</div><h3>${esc(w.title)}</h3><h4>Scenario</h4><p>${esc(w.scenario)}</p><h4>Inputs</h4><ul>${w.inputs.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><h4>Tools</h4><div class="row">${w.tools.map(x=>`<span class="pill">${esc(x)}</span>`).join("")}</div><h4>Workflow</h4>${w.steps.map((x,i)=>`<div class="step"><strong>${i+1}</strong><span>${esc(x)}</span></div>`).join("")}<h4>Quality Checks</h4><ul>${w.qa.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><details open><summary>Worked Example</summary><p>${esc(w.example)}</p></details><div class="actions"><button class="btn primary" onclick="workflowToTasks('${id}')">Add Steps to My Desk</button><button class="btn" onclick="copyWorkflow('${id}')">Copy Workflow</button></div>`)}
+function workflowToTasks(id){const w=workflows.find(x=>x.id===id);w.steps.forEach((x,i)=>state.data.tasks.push({id:uid(),title:`${w.title}: ${x}`,desc:`Workflow step ${i+1}/${w.steps.length} · ${w.scenario}`,status:"TO DO",priority:"MEDIUM",due:""}));save();closeModal();toast("Workflow steps added to Desk")}
+function copyWorkflow(id){const w=workflows.find(x=>x.id===id);copyText(`${w.title}\n\nScenario: ${w.scenario}\n\nInputs:\n${w.inputs.map(x=>"• "+x).join("\n")}\n\nSteps:\n${w.steps.map((x,i)=>`${i+1}. ${x}`).join("\n")}\n\nQA:\n${w.qa.map(x=>"• "+x).join("\n")}\n\nExample:\n${w.example}`)}
+function renderGuides(){const cats=["All",...new Set(guideData.map(x=>x.c))],shown=state.guideCat==="All"?guideData:guideData.filter(x=>x.c===state.guideCat);return `<div class="head"><div><div class="eyebrow">Practical references</div><h2 class="title">Guides</h2></div></div>${tabs(cats,state.guideCat,"setGuideCat")}<div class="guidegrid">${shown.map((g,i)=>`<div class="guidecard card"><div class="cat">${g.c}</div><h4>${g.t}</h4><p>${g.s}</p><button class="btn" onclick="openGuide('${encodeURIComponent(g.t)}')">Read Guide</button></div>`).join("")}</div>`}
+function setGuideCat(c){state.guideCat=c;render()}function openGuide(t){const g=guideData.find(x=>x.t===decodeURIComponent(t));if(g)modal(g.b)}
+function renderLearn(){const cats=["All",...new Set(learnTracks.map(x=>x.cat))],shown=state.learnCat==="All"?learnTracks:learnTracks.filter(x=>x.cat===state.learnCat);return `<div class="head"><div><div class="eyebrow">Actual mini-lessons + examples + practice</div><h2 class="title">Learn</h2><p class="muted">Open a lesson to learn the concept, see a worked example, do a practice task and answer a quick check.</p></div></div>${tabs(cats,state.learnCat,"setLearnCat")}<div class="learngrid">${shown.map(l=>{const pr=state.data.learningProgress[l.id]||{};return`<article class="card pad"><div class="cat">${esc(l.cat)} · ${esc(l.duration)}</div><h4>${esc(l.title)}</h4><p class="small muted">${esc(l.objective)}</p><div class="progress"><span style="width:${pr.completed?100:pr.quizCorrect?70:0}%"></span></div><div class="small muted" style="margin-top:6px">${pr.completed?"Completed":pr.quizCorrect?"Quick check passed":"Not started"}</div><button class="btn primary sm" style="margin-top:10px" onclick="openLesson('${l.id}')">Open Lesson</button></article>`}).join("")}</div>`}
+function setLearnCat(c){state.learnCat=c;render()}
+function openLesson(id){const l=learnTracks.find(x=>x.id===id),pr=state.data.learningProgress[id]||{};modal(`<div class="cat">${esc(l.cat)} · ${esc(l.duration)}</div><h3>${esc(l.title)}</h3><p><strong>Objective:</strong> ${esc(l.objective)}</p><h4>Learn</h4>${l.content.map(x=>`<p>${esc(x)}</p>`).join("")}<h4>Worked Example</h4><div class="preview">${esc(l.example)}</div><h4>Practice</h4><div class="preview">${esc(l.practice)}</div><button class="btn" onclick="lessonPracticeToTask('${id}')">Add Practice to My Desk</button><h4>Quick Check</h4><p>${esc(l.quiz.q)}</p>${l.quiz.opts.map((x,i)=>`<label class="quizopt"><input type="radio" name="quiz" value="${i}"> ${esc(x)}</label>`).join("")}<button class="btn primary" onclick="checkQuiz('${id}')">Check Answer</button><div id="quizresult" class="preview">${pr.quizCorrect?"Previously passed.":""}</div><div class="actions"><button class="btn good" onclick="completeLesson('${id}')">Mark Lesson Complete</button></div>`)}
+function checkQuiz(id){const l=learnTracks.find(x=>x.id===id),sel=document.querySelector('input[name="quiz"]:checked'),o=document.getElementById("quizresult");if(!sel)return o.textContent="Choose an answer first.";const ok=+sel.value===l.quiz.a;o.innerHTML=`<strong>${ok?"Correct ✓":"Not quite"}</strong><br>${esc(l.quiz.why)}`;state.data.learningProgress[id]={...(state.data.learningProgress[id]||{}),quizCorrect:ok};save()}
+function completeLesson(id){state.data.learningProgress[id]={...(state.data.learningProgress[id]||{}),completed:true,completedAt:new Date().toISOString()};save();closeModal();render();toast("Lesson completed")}
+function lessonPracticeToTask(id){const l=learnTracks.find(x=>x.id===id);state.data.tasks.push({id:uid(),title:`Practice: ${l.title}`,desc:l.practice,status:"TO DO",priority:"MEDIUM",due:""});save();toast("Practice added to Desk")}
+function allPortfolio(){return[...portfolio,...(state.data.customProjects||[])]}
+function renderPortfolio(){const cats=["All",...new Set(allPortfolio().map(x=>x.cat))],shown=state.portfolioCat==="All"?allPortfolio():allPortfolio().filter(x=>x.cat===state.portfolioCat);return `<div class="head"><div><div class="eyebrow">Build proof, not fake claims</div><h2 class="title">Portfolio Lab</h2><p class="muted">Projects now include a realistic brief, deliverables, steps, examples, review criteria and case-study output.</p></div><button class="btn primary" onclick="openCustomProject()">＋ Custom Project</button></div><div class="livebar"><strong>Rule:</strong> Seeded exercises are SIMULATED PORTFOLIO PROJECTS until replaced with genuine client evidence.</div>${tabs(cats,state.portfolioCat,"setPortfolioCat")}<div class="projectgrid">${shown.map(p=>{const pr=state.data.portfolioProgress[p.id]||{checked:[]},done=(pr.checked||[]).length,total=p.steps.length,pc=total?Math.round(done/total*100):0;return`<article class="projectcard card"><div class="cat">${esc(p.cat)} · ${esc(p.difficulty||"Custom")}</div><h4>${esc(p.title)}</h4><p>${esc(p.objective||p.brief)}</p><div class="progress"><span style="width:${pc}%"></span></div><div class="small muted" style="margin-top:6px">${done}/${total} build steps · ${esc(p.time||"Flexible")}</div><button class="btn primary" style="margin-top:10px" onclick="openPortfolioProject('${p.id}')">Open Workspace</button></article>`}).join("")}</div>`}
+function setPortfolioCat(c){state.portfolioCat=c;render()}
+function ensurePortfolio(id){if(!state.data.portfolioProgress[id])state.data.portfolioProgress[id]={checked:[],review:[],notes:"",link:"",caseStudy:""};return state.data.portfolioProgress[id]}
+function openPortfolioProject(id){const p=allPortfolio().find(x=>x.id===id);if(!p)return;const pr=ensurePortfolio(id);modal(`<span class="pill warn">SIMULATED PORTFOLIO PROJECT</span><h3>${esc(p.title)}</h3><p>${esc(p.brief)}</p><div class="fitgrid"><div class="fitmetric"><span class="small muted">Difficulty</span><strong style="font-size:15px">${esc(p.difficulty||"Custom")}</strong></div><div class="fitmetric"><span class="small muted">Time</span><strong style="font-size:15px">${esc(p.time||"Flexible")}</strong></div><div class="fitmetric"><span class="small muted">Steps</span><strong>${p.steps.length}</strong></div><div class="fitmetric"><span class="small muted">Deliverables</span><strong>${p.deliverables.length}</strong></div></div><h4>Goal</h4><p>${esc(p.objective)}</p><h4>Deliverables</h4><ul>${p.deliverables.map(x=>`<li>${esc(x)}</li>`).join("")}</ul><h4>Suggested Tools</h4><div class="row">${p.tools.map(x=>`<span class="pill">${esc(x)}</span>`).join("")}</div><h4>Build Steps</h4>${p.steps.map((x,i)=>`<label class="step"><input type="checkbox" ${pr.checked.includes(i)?"checked":""} onchange="portfolioStep('${id}',${i},this.checked)"><span><strong>Step ${i+1}</strong><br>${esc(x)}</span></label>`).join("")}<details><summary>Example / Sample Direction</summary><p>${esc(p.example)}</p></details><h4>Your Project Notes</h4><textarea onchange="portfolioField('${id}','notes',this.value)">${esc(pr.notes||"")}</textarea><label>Artifact / portfolio link</label><input class="input" value="${esc(pr.link||"")}" onchange="portfolioField('${id}','link',this.value)"><h4>Self-Review</h4><div class="rubric">${p.rubric.map((x,i)=>`<label class="step"><input type="checkbox" ${pr.review.includes(i)?"checked":""} onchange="portfolioReview('${id}',${i},this.checked)"><span>${esc(x)}</span></label>`).join("")}</div><div class="actions"><button class="btn" onclick="downloadProjectBrief('${id}')">Download Brief</button><button class="btn primary" onclick="generateCaseStudy('${id}')">Generate Case Study</button></div><div id="caseStudyOut">${pr.caseStudy?`<textarea class="kitarea">${esc(pr.caseStudy)}</textarea>`:""}</div>`)}
+function portfolioStep(id,i,on){const p=ensurePortfolio(id);p.checked=p.checked.filter(x=>x!==i);if(on)p.checked.push(i);save()}
+function portfolioReview(id,i,on){const p=ensurePortfolio(id);p.review=p.review.filter(x=>x!==i);if(on)p.review.push(i);save()}
+function portfolioField(id,k,v){ensurePortfolio(id)[k]=v;save()}
+function generateCaseStudy(id){const p=allPortfolio().find(x=>x.id===id),pr=ensurePortfolio(id);pr.caseStudy=`SIMULATED PORTFOLIO PROJECT\n\nPROJECT: ${p.title}\nNICHE: ${p.cat}\n\nCHALLENGE\n${p.brief}\n\nOBJECTIVE\n${p.objective}\n\nAPPROACH\n${p.steps.map((x,i)=>`${i+1}. ${x}${pr.checked.includes(i)?" ✓":""}`).join("\n")}\n\nDELIVERABLES\n${p.deliverables.map(x=>"• "+x).join("\n")}\n\nTOOLS\n${p.tools.join(", ")}\n\nMY NOTES / DECISIONS\n${pr.notes||"[Add your reasoning here.]"}\n\nSELF-REVIEW\n${p.rubric.map((x,i)=>`• ${x}: ${pr.review.includes(i)?"Checked":"Review needed"}`).join("\n")}\n\nARTIFACT\n${pr.link||"[Add project link]"}\n\nThis is a simulated practice exercise and does not represent paid client work unless explicitly replaced with genuine client evidence.`;save();document.getElementById("caseStudyOut").innerHTML=`<textarea class="kitarea">${esc(pr.caseStudy)}</textarea><div class="actions"><button class="btn primary" onclick="copyText(decodeURIComponent('${encodeURIComponent(pr.caseStudy)}'))">Copy Case Study</button></div>`}
+function downloadProjectBrief(id){const p=allPortfolio().find(x=>x.id===id);downloadText(`${p.title.replace(/[^\w-]+/g,"-")}-brief.txt`,`SIMULATED PORTFOLIO PROJECT\n\n${p.title}\n\nBRIEF\n${p.brief}\n\nOBJECTIVE\n${p.objective}\n\nDELIVERABLES\n${p.deliverables.map(x=>"• "+x).join("\n")}\n\nSTEPS\n${p.steps.map((x,i)=>`${i+1}. ${x}`).join("\n")}\n\nEXAMPLE\n${p.example}`)}
+function openCustomProject(){modal(`<h3>Create Custom Portfolio Project</h3><div class="form2"><div><label>Title</label><input id="cpTitle" class="input"></div><div><label>Category / Niche</label><input id="cpCat" class="input" value="Custom"></div></div><label style="margin-top:8px">Client-style brief</label><textarea id="cpBrief"></textarea><label>Objective</label><textarea id="cpObj"></textarea><label>Deliverables (one per line)</label><textarea id="cpDel"></textarea><label>Steps (one per line)</label><textarea id="cpSteps"></textarea><button class="btn primary" onclick="saveCustomProject()">Create Project</button>`)}
+function saveCustomProject(){const title=document.getElementById("cpTitle").value.trim();if(!title)return toast("Add a title");state.data.customProjects.push({id:"custom-"+uid(),cat:document.getElementById("cpCat").value||"Custom",title,difficulty:"Custom",time:"Flexible",brief:document.getElementById("cpBrief").value,objective:document.getElementById("cpObj").value,deliverables:document.getElementById("cpDel").value.split(/\n/).filter(Boolean),steps:document.getElementById("cpSteps").value.split(/\n/).filter(Boolean),tools:["Your preferred tools"],example:"Build the deliverable from the brief and document your reasoning.",rubric:["Accurate","Clear","Usable","Honest labeling"]});save();closeModal();render()}
+function renderAI(){return `<div class="head"><div><div class="eyebrow">Free-access launchpad + prompt helpers</div><h2 class="title">AI Launchpad</h2><p class="muted">No fake built-in AI. Open providers directly or use the local Prompt Builder below. Provider free limits/accounts can change.</p></div></div>
+ <div class="linkgrid">${aiLinks.map(([n,u,d])=>`<div class="linkcard card"><div class="cat">EXTERNAL AI</div><h4>${n}</h4><p>${d}</p><a class="btn" href="${u}" target="_blank" rel="noopener">Open ${n}</a></div>`).join("")}</div>
+ <section class="card pad" style="margin-top:16px"><h3>Prompt Builder</h3><div class="form2"><div><label>Role for AI</label><input id="prole" class="input" placeholder="e.g. Recruiter, SMM, Executive Assistant"></div><div><label>Task</label><input id="ptask" class="input" placeholder="What should it do?"></div></div><label style="margin-top:9px">Context / constraints</label><textarea id="pcontext"></textarea><label>Desired output</label><textarea id="poutput"></textarea><div id="promptout" class="preview"></div><button class="btn primary" onclick="buildPrompt()">Build Prompt</button></section>`}
+function buildPrompt(){const r=document.getElementById("prole").value,t=document.getElementById("ptask").value,c=document.getElementById("pcontext").value,o=document.getElementById("poutput").value;document.getElementById("promptout").textContent=`Act as ${r||"a skilled professional"}. Your task is to ${t||"[task]"}. Context and constraints: ${c||"[context]"}. Produce: ${o||"[desired output]"}. Do not invent facts or experience; ask only if a missing detail is essential.`}
+
+
+function openAssistant(mode="Cover Letter"){
+ const modes=["Cover Letter","Application Email","Client Reply","Follow-Up","SOP","Meeting Brief","Social Caption","Portfolio Case Study","Job Fit Summary"];
+ document.getElementById("assistantRoot").innerHTML=`<div class="drawerbg" onclick="if(event.target===this)closeAssistant()"></div><aside class="assistant">
+ <div class="head"><div><div class="eyebrow">Built into Freelance Desk</div><h2 style="margin:4px 0">✦ DeskMate</h2></div><button class="btn icon" onclick="closeAssistant()">×</button></div>
+ <p class="small muted"><strong>Purpose:</strong> create useful first drafts without leaving the app. For job-related outputs it can use your Career Profile Vault evidence. This free HTML version uses local structured generation and does not pretend to be a live paid AI model.</p>
+ <label>Generate</label><select id="dmMode" class="input">${modes.map(x=>`<option ${x===mode?"selected":""}>${x}</option>`).join("")}</select>
+ <label style="margin-top:9px">Context / job post / message / process</label><textarea id="dmContext" style="min-height:210px" placeholder="Paste the job post, client message, meeting context, process, content topic, etc."></textarea>
+ <label>Extra instruction</label><input id="dmInstruction" class="input" placeholder="e.g. concise, warm, professional, no hype">
+ <div class="actions"><button class="btn primary" onclick="generateDeskMate()">Generate Inside</button><button class="btn" onclick="loadDeskMateExample()">Load Example</button></div>
+ <textarea id="dmOutput" class="assistant-output" placeholder="DeskMate output appears here..."></textarea>
+ <div class="actions"><button class="btn" onclick="copyText(document.getElementById('dmOutput').value)">Copy</button><button class="btn" onclick="downloadText('deskmate-output.txt',document.getElementById('dmOutput').value)">Download TXT</button></div>
+ </aside>`
+}
+function closeAssistant(){document.getElementById("assistantRoot").innerHTML=""}
+function loadDeskMateExample(){
+ const m=document.getElementById("dmMode").value;
+ const examples={
+  "Cover Letter":"Operations Assistant role needing Google Workspace, scheduling, CRM updates, research, weekly reports and client follow-ups.",
+  "Application Email":"Social Media VA role requiring Canva, scheduling, engagement and reporting.",
+  "Client Reply":"Client asks: Can you finish the report today and also redesign the dashboard?",
+  "Follow-Up":"Waiting on pricing approval. Launch is Friday.",
+  "SOP":"New website lead arrives. Need to log, qualify, assign, follow up and update CRM.",
+  "Meeting Brief":"Vendor increased software pricing by 35%. Founder meets vendor tomorrow.",
+  "Social Caption":"Topic: clear handoffs reduce missed tasks. Audience: small business owners.",
+  "Portfolio Case Study":"Simulated Executive Inbox System with labels, escalation rules, templates and daily brief.",
+  "Job Fit Summary":"Job requires Google Workspace, calendar management, research, CRM and remote availability."
+ };
+ document.getElementById("dmContext").value=examples[m]||""
+}
+function generateDeskMate(){
+ const mode=document.getElementById("dmMode").value,c=document.getElementById("dmContext").value.trim(),note=document.getElementById("dmInstruction").value.trim(),p=state.data.profile;
+ let out="";
+ if(mode==="Cover Letter"){
+  const a=evidenceFitAnalysis(c,{title:"Advertised Role",description:c}),match=a.matchedSkills.slice(0,6).join(", ")||"the relevant experience shown in my saved materials";
+  out=`Dear Hiring Team,
+
+I am applying for the advertised opportunity. After reviewing the role against my saved career materials, the strongest areas of alignment include ${match}.
+
+My background includes experience and transferable skills relevant to the responsibilities described. I would bring a structured approach to communication, organization, research and follow-through while remaining transparent about any requirements I am still developing.
+
+I would welcome the opportunity to discuss how my actual experience can support your team.
+
+Sincerely,
+${p.name||"Applicant"}`
+ } else if(mode==="Application Email"){
+  const a=evidenceFitAnalysis(c,{title:"Advertised Role",description:c}),match=a.matchedSkills.slice(0,5).join(", ")||"the role's core responsibilities";
+  out=`Subject: Application — Advertised Role
+
+Hello,
+
+I’m reaching out regarding your opening. My background aligns most clearly with ${match}. I reviewed the role carefully and would be glad to discuss how my experience can support the team.
+
+Portfolio: ${p.portfolioUrl||"[insert portfolio link]"}
+Resume: [attach resume]
+
+Thank you,
+${p.name||"Applicant"}`
+ } else if(mode==="Client Reply"){
+  out=`Hi,
+
+Thanks for the message. I want to make sure I handle this in the right order.
+
+My understanding:
+• ${c||"[client request]"}
+• I can complete the highest-priority item first.
+• If the additional request changes scope or timing, I’ll flag the impact before committing.
+
+Could you confirm which outcome should take priority?
+
+Thank you.`
+ } else if(mode==="Follow-Up"){
+  out=`Hi,
+
+Following up regarding ${c||"the pending item"}. I’m ready to move forward once the needed confirmation is available.
+
+Could you please confirm the next step or expected approval timeline so I can keep the work on schedule?
+
+Thank you.`
+ } else if(mode==="SOP"){
+  out=`STANDARD OPERATING PROCEDURE
+
+PROCESS
+${c||"[Process / context]"}
+
+PURPOSE
+Create a consistent and repeatable way to complete this process.
+
+TRIGGER
+The process begins when the required request, event or input is received.
+
+STEPS
+1. Confirm the input is complete.
+2. Record it in the correct tracker/system.
+3. Verify required details.
+4. Complete the authorized action.
+5. Flag exceptions, risks or missing information.
+6. Update owner, status and due date.
+7. Confirm completion and close the loop.
+
+QUALITY CHECKS
+• Required information is complete.
+• No duplicate action exists.
+• Exceptions are escalated.
+• Final status is documented.`
+ } else if(mode==="Meeting Brief"){
+  out=`MEETING BRIEF
+
+OBJECTIVE
+${c||"[Define the desired decision or outcome.]"}
+
+BACKGROUND
+Summarize only the context attendees need.
+
+ATTENDEES
+[Names / roles]
+
+KEY FACTS
+• [Fact 1]
+• [Fact 2]
+• [Constraint / deadline]
+
+DECISIONS NEEDED
+1. [Decision]
+
+RISKS / QUESTIONS
+• [Risk / unresolved point]
+
+FOLLOW-THROUGH
+Document the decision, owner and due date immediately after the meeting.`
+ } else if(mode==="Social Caption"){
+  out=`HOOK
+A clearer system usually removes more stress than another productivity trick.
+
+CAPTION
+${c||"A common business problem is work getting lost between people, tools and deadlines."}
+
+Instead of relying on memory, define the next action, owner and deadline. That one habit makes handoffs easier to follow and makes problems easier to spot before they become urgent.
+
+PRACTICAL TAKEAWAY
+Before closing a task, ask: What happens next, who owns it, and by when?
+
+QUESTION
+Which part of your workflow needs a clearer next step?`
+ } else if(mode==="Portfolio Case Study"){
+  out=`SIMULATED PORTFOLIO CASE STUDY
+
+PROJECT CONTEXT
+${c||"[Describe your simulated project.]"}
+
+PROBLEM
+What needed to be organized, improved or created?
+
+APPROACH
+1. Defined the desired outcome.
+2. Mapped the required information/process.
+3. Built the deliverable using appropriate tools.
+4. Reviewed accuracy and usability.
+
+DELIVERABLE
+[Describe what you created.]
+
+WHAT THIS DEMONSTRATES
+Organization, judgment, communication, documentation and follow-through.
+
+DISCLOSURE
+This is a simulated portfolio project and does not represent paid client work.`
+ } else if(mode==="Job Fit Summary"){
+  const a=evidenceFitAnalysis(c,{title:"Pasted Job",description:c});
+  out=`JOB FIT SUMMARY
+
+Evidence Fit: ${a.score}% — ${a.label}
+Confidence: ${a.confidence}
+
+MATCHED SKILLS
+${a.matchedSkills.map(x=>"• "+x).join("\n")||"• No exact stored skill phrases detected"}
+
+GAPS / VERIFY
+${a.missingSkills.slice(0,10).map(x=>"• "+x).join("\n")||"• No exact skill gaps detected"}
+
+ELIGIBILITY
+${a.locNote}
+
+NEXT STEP
+${a.score>=75?"Strong evidence match: tailor an application using verified experience only.":a.score>=55?"Possible fit: review required vs preferred gaps.":"Weak/unclear match: prioritize stronger-fit roles unless you can truthfully address the gaps."}`
+ }
+ if(note)out+=`\n\nSTYLE / USER NOTE\n${note}`;
+ document.getElementById("dmOutput").value=out
+}
+function downloadText(name,text){const b=new Blob([text],{type:"text/plain"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;a.click();URL.revokeObjectURL(a.href)}
+
+function applySettings(){
+ const s=state.data.settings||{},prefersDark=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;
+ const dark=s.theme==="dark"||(s.theme==="system"&&prefersDark);
+ document.body.classList.toggle("dark",dark);document.body.classList.toggle("cool",s.background==="cool");document.body.classList.toggle("blush",s.background==="blush");document.body.classList.toggle("compact",s.density==="compact");document.body.classList.toggle("reduced",!!s.reducedMotion);
+ document.documentElement.style.setProperty("--accent",s.accent||"#5b4c78");document.documentElement.style.setProperty("--fontScale",Number(s.fontScale||1));updateThemeButton()
+}
+function updateThemeButton(){const b=document.getElementById("themeBtn");if(!b)return;const dark=document.body.classList.contains("dark");b.innerHTML=`${dark?"☾":"☼"} <span>${dark?"Dark":"Light"}</span>`;b.title=dark?"Switch to light mode":"Switch to dark mode"}
+function quickThemeToggle(){state.data.settings.theme=document.body.classList.contains("dark")?"light":"dark";save();applySettings();toast(state.data.settings.theme==="dark"?"Dark mode on":"Light mode on")}
+function openAppearanceSettings(){state.settingsTab="Appearance";navigate("settings")}
+function renderSettings(){
+ const list=["Profile","Appearance","Job Preferences","Data & Privacy"],body=state.settingsTab==="Profile"?settingsProfile():state.settingsTab==="Appearance"?settingsAppearance():state.settingsTab==="Job Preferences"?settingsJobPrefs():settingsData();
+ return `<div class="head"><div><div class="eyebrow">Functional personalization</div><h2 class="title">Settings</h2><p class="muted">For Light/Dark mode, open <strong>Appearance</strong> — or use the Theme button in the top bar.</p></div></div>${tabs(list,state.settingsTab,"setSettingsTab")}${body}`
+}
+function setSettingsTab(x){state.settingsTab=x;render()}
+function settingsProfile(){
+ const p=state.data.profile,all=["Executive/Admin VA","General VA","Social Media","Lead Generation","Recruitment/HR","Real Estate","E-commerce","Customer Support","Bookkeeping/Finance","Project Management","Operations","Community Management","Marketing","AI/Automation","Design/Creative","Writing","Development/Tech","Other"];
+ return `<section class="card pad"><h3>Profile</h3><div class="form2"><div><label>Name</label><input id="pname" class="input" value="${esc(p.name||"")}"></div><div><label>Professional Title</label><input id="ptitle" class="input" value="${esc(p.title||"")}"></div><div><label>Level</label><select id="plevel" class="input">${["Just Starting","Building Experience","Actively Job Searching","Working With Clients"].map(x=>`<option ${p.level===x?"selected":""}>${x}</option>`).join("")}</select></div><div><label>Timezone</label><input id="ptz" class="input" value="${esc(p.timezone||"")}"></div><div><label>Location / Preference</label><input id="ploc" class="input" value="${esc(p.location||"")}"></div><div><label>Portfolio URL</label><input id="pportfolio" class="input" value="${esc(p.portfolioUrl||"")}"></div></div><label style="margin-top:10px">Skills / Tools</label><textarea id="pskills">${esc(p.skills||"")}</textarea><h4>Niches — multi-select</h4><div class="row">${all.map(x=>`<label class="pill"><input type="checkbox" class="nichecheck" value="${x}" ${(p.niches||[]).includes(x)?"checked":""}> ${x}</label>`).join("")}</div><button class="btn primary" style="margin-top:12px" onclick="saveProfileSettings()">Save Profile</button></section>`
+}
+function saveProfileSettings(){const p=state.data.profile;p.name=document.getElementById("pname").value;p.title=document.getElementById("ptitle").value;p.level=document.getElementById("plevel").value;p.timezone=document.getElementById("ptz").value;p.location=document.getElementById("ploc").value;p.portfolioUrl=document.getElementById("pportfolio").value;p.skills=document.getElementById("pskills").value;p.niches=[...document.querySelectorAll(".nichecheck:checked")].map(x=>x.value);save();toast("Profile saved");render()}
+function settingsAppearance(){
+ const s=state.data.settings;
+ return `<section class="card pad"><div class="head"><div><h3>Appearance</h3><p class="small muted">Changes preview immediately.</p></div><button class="btn" onclick="quickThemeToggle()">Quick Light / Dark Toggle</button></div>
+ <div class="setting-row"><div><h4>Theme</h4><p>System, Light or Dark.</p></div><select id="stheme" class="input" onchange="previewAppearance()"><option value="system" ${s.theme==="system"?"selected":""}>System</option><option value="light" ${s.theme==="light"?"selected":""}>Light</option><option value="dark" ${s.theme==="dark"?"selected":""}>Dark</option></select></div>
+ <div class="setting-row"><div><h4>Background Tone</h4><p>Warm, Cool or Blush.</p></div><select id="sbg" class="input" onchange="previewAppearance()"><option value="warm" ${s.background==="warm"?"selected":""}>Warm</option><option value="cool" ${s.background==="cool"?"selected":""}>Cool</option><option value="blush" ${s.background==="blush"?"selected":""}>Blush</option></select></div>
+ <div class="setting-row"><div><h4>Accent Color</h4><p>Buttons, active nav and progress.</p></div><input id="saccent" type="color" value="${esc(s.accent||"#5b4c78")}" onchange="previewAppearance()"></div>
+ <div class="setting-row"><div><h4>Text Size</h4><p>Interface scaling.</p></div><select id="sfont" class="input" onchange="previewAppearance()"><option value=".9" ${Number(s.fontScale)===.9?"selected":""}>Small</option><option value="1" ${Number(s.fontScale)===1?"selected":""}>Default</option><option value="1.1" ${Number(s.fontScale)===1.1?"selected":""}>Large</option><option value="1.2" ${Number(s.fontScale)===1.2?"selected":""}>Extra Large</option></select></div>
+ <div class="setting-row"><div><h4>Layout Density</h4><p>Comfortable or compact.</p></div><select id="sdensity" class="input" onchange="previewAppearance()"><option value="comfortable" ${s.density==="comfortable"?"selected":""}>Comfortable</option><option value="compact" ${s.density==="compact"?"selected":""}>Compact</option></select></div>
+ <div class="setting-row"><div><h4>Reduced Motion</h4><p>Disable nonessential transitions.</p></div><label><input id="sreduce" type="checkbox" ${s.reducedMotion?"checked":""} onchange="previewAppearance()"> Reduce motion</label></div>
+ <div class="setting-row"><div><h4>Start Page</h4><p>Page shown when the workspace opens.</p></div><select id="sstart" class="input">${Object.entries(pages).map(([k,v])=>`<option value="${k}" ${s.startPage===k?"selected":""}>${v}</option>`).join("")}</select></div>
+ <button class="btn primary" onclick="saveAppearance()">Save Appearance</button></section>`
+}
+function previewAppearance(){const s=state.data.settings;s.theme=document.getElementById("stheme").value;s.background=document.getElementById("sbg").value;s.accent=document.getElementById("saccent").value;s.fontScale=+document.getElementById("sfont").value;s.density=document.getElementById("sdensity").value;s.reducedMotion=document.getElementById("sreduce").checked;applySettings()}
+function saveAppearance(){previewAppearance();state.data.settings.startPage=document.getElementById("sstart").value;save();toast("Appearance saved")}
+function settingsJobPrefs(){const s=state.data.settings;return `<section class="card pad"><h3>Job Preferences</h3><div class="form2"><div><label>Default keyword</label><input id="sjq" class="input" value="${esc(s.jobKeywords||"")}"></div><div><label>Location keyword</label><input id="sjloc" class="input" value="${esc(s.jobLocation||"")}"></div><div><label>Preferred currency</label><input id="scur" class="input" value="${esc(s.currency||"USD")}"></div><div><label>Blocked keywords</label><input id="sblock" class="input" value="${esc(s.blockedKeywords||"")}"></div></div><div class="row" style="margin-top:12px"><label class="pill"><input id="sremote" type="checkbox" ${s.remoteOnly?"checked":""}> Remote preferred</label><label class="pill"><input id="sbeginner" type="checkbox" ${s.beginnerPreferred?"checked":""}> Beginner-friendly</label><label class="pill"><input id="ssalary" type="checkbox" ${s.salaryPreferred?"checked":""}> Salary disclosed</label></div><button class="btn primary" style="margin-top:12px" onclick="saveJobPrefs()">Save Preferences</button></section>`}
+function saveJobPrefs(){const s=state.data.settings;s.jobKeywords=document.getElementById("sjq").value;s.jobLocation=document.getElementById("sjloc").value;s.currency=document.getElementById("scur").value;s.blockedKeywords=document.getElementById("sblock").value;s.remoteOnly=document.getElementById("sremote").checked;s.beginnerPreferred=document.getElementById("sbeginner").checked;s.salaryPreferred=document.getElementById("ssalary").checked;save();toast("Job preferences saved")}
+function settingsData(){return `<section class="card pad"><h3>Data & Privacy</h3><p class="small muted">Workspace data is stored locally in this browser.</p><div class="actions"><button class="btn" onclick="exportData()">Export JSON</button><button class="btn" onclick="document.getElementById('ifile').click()">Import JSON</button><input id="ifile" type="file" accept=".json,application/json" class="hidden" onchange="importData(this.files[0])"><button class="btn" onclick="clearJobCache()">Clear Job Cache</button><button class="btn bad" onclick="resetAll()">Reset All</button></div></section>`}
+function exportData(){const b=new Blob([JSON.stringify({schema:6,exportedAt:new Date().toISOString(),data:state.data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="freelance-desk-backup.json";a.click();URL.revokeObjectURL(a.href)}
+function importData(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result),d=o.data||o;if(!d||typeof d!=="object")throw Error();if(confirm("Import and merge this backup?")){state.data={...state.data,...d,profile:{...state.data.profile,...(d.profile||{})},settings:{...state.data.settings,...(d.settings||{})}};save();applySettings();render();toast("Backup imported")}}catch{alert("Invalid JSON backup.")}};r.readAsText(f)}
+function clearJobCache(){localStorage.removeItem(JOB_CACHE_KEY);state.liveJobs=[];state.sourceHealth={};state.liveStatus="Cache cleared.";toast("Job cache cleared")}
+function resetAll(){if(confirm("Delete all locally saved workspace data? Export a backup first if needed.")){localStorage.removeItem(KEY);localStorage.removeItem(JOB_CACHE_KEY);location.reload()}}
+
+function modal(body){document.getElementById("modalRoot").innerHTML=`<div class="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal"><button class="x" onclick="closeModal()">×</button>${body}</div></div>`}
+function closeModal(){document.getElementById("modalRoot").innerHTML=""}
+function copyText(t){navigator.clipboard.writeText(t).then(()=>toast("Copied")).catch(()=>toast("Copy failed — select manually"))}
+
+let focusSecs=25*60,focusInt=null,focusRunning=false;
+function toggleFocus(){document.getElementById("focus").classList.toggle("hidden");drawFocus()}
+function drawFocus(){const e=document.getElementById("focus"),m=String(Math.floor(focusSecs/60)).padStart(2,"0"),s=String(focusSecs%60).padStart(2,"0");e.innerHTML=`<div class="head"><h3>Focus</h3><button class="btn sm" onclick="toggleFocus()">×</button></div><div class="clock">${m}:${s}</div><div class="actions"><button class="btn primary" onclick="runFocus()">${focusRunning?"Pause":"Start"}</button><button class="btn" onclick="resetFocus(25)">25m</button><button class="btn" onclick="resetFocus(50)">50m</button></div><p class="small muted">Completed sessions: ${state.data.focusSessions.length}</p>`}
+function runFocus(){focusRunning=!focusRunning;if(focusRunning)focusInt=setInterval(()=>{focusSecs--;if(focusSecs<=0){clearInterval(focusInt);focusRunning=false;state.data.focusSessions.push(new Date().toISOString());save();focusSecs=25*60;toast("Focus session complete")}drawFocus()},1000);else clearInterval(focusInt);drawFocus()}
+function resetFocus(m){clearInterval(focusInt);focusRunning=false;focusSecs=m*60;drawFocus()}
+
+function commandIndex(){return [...Object.entries(pages).map(([route,label])=>({label,cat:"Page",desc:"Open "+label,route})),...toolDefs.map(t=>({label:t.n,cat:"Tool",desc:t.d,tool:t.a})),...guideData.map(g=>({label:g.t,cat:"Guide",desc:g.s,guide:g.t})),...workflows.map(([c,t,s])=>({label:t,cat:"Workflow",desc:s,route:"workflows"})),...portfolio.map(([c,t,d])=>({label:t,cat:"Portfolio",desc:d,route:"portfolio"}))]}
+function openSearch(){document.getElementById("commandRoot").innerHTML=`<div class="commandbg" onclick="if(event.target===this)closeSearch()"><div class="command"><input id="cmdq" autofocus placeholder="Search pages, tools, guides, workflows…" oninput="cmdResults(this.value)"><div id="cmdres" class="cmdresults"></div></div></div>`;cmdResults("")}
+function closeSearch(){document.getElementById("commandRoot").innerHTML=""}
+function cmdResults(q){q=q.toLowerCase();const a=commandIndex().filter(x=>!q||(x.label+" "+x.cat+" "+x.desc).toLowerCase().includes(q)).slice(0,35);document.getElementById("cmdres").innerHTML=a.map((x,i)=>`<div class="cmditem" onclick="cmdGo('${encodeURIComponent(JSON.stringify(x))}')"><strong>${esc(x.label)}</strong><div class="small muted">${esc(x.cat)} · ${esc(x.desc)}</div></div>`).join("")||'<div class="empty">No results.</div>'}
+function cmdGo(s){const x=JSON.parse(decodeURIComponent(s));closeSearch();if(x.tool)openTool(x.tool);else if(x.guide){navigate("guides");setTimeout(()=>openGuide(encodeURIComponent(x.guide)),20)}else navigate(x.route)}
+
+function render(){
+ const r={home:renderHome,desk:renderDesk,community:renderCommunity,jobs:renderJobs,tracker:renderTracker,portfolio:renderPortfolio,tools:renderTools,workflows:renderWorkflows,guides:renderGuides,learn:renderLearn,ai:renderAI,settings:renderSettings}[state.page];
+ document.getElementById("content").innerHTML=r();
+ if(state.page==="jobs"&&!state.liveJobs.length)setTimeout(()=>loadLiveJobs(false),60);
+}
+document.getElementById("menu").onclick=()=>document.getElementById("sidebar").classList.toggle("open");
+document.getElementById("search").onclick=openSearch;
+document.getElementById("focusBtn").onclick=toggleFocus;
+document.getElementById("assistantBtn").onclick=()=>openAssistant();
+document.getElementById("themeBtn").onclick=quickThemeToggle;
+document.getElementById("addBtn").onclick=openTask;
+document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openSearch()}if(e.key==="Escape"){closeModal();closeSearch();closeAssistant()}});
+load();applySettings();render();
+</script>
+</body>
+</html>
