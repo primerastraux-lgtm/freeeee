@@ -291,6 +291,8 @@ function save(){
       workspace: {
         profile: state.data.profile,
         settings: state.data.settings,
+        tasks: state.data.tasks,
+        jobs: state.data.jobs,
         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
       }
     }, { merge: true })
@@ -1284,7 +1286,13 @@ if (auth) {
                 ...cloudData.workspace.settings
               };
             }
+if (Array.isArray(cloudData.workspace?.tasks)) {
+  state.data.tasks = cloudData.workspace.tasks;
+}
 
+if (Array.isArray(cloudData.workspace?.jobs)) {
+  state.data.jobs = cloudData.workspace.jobs;
+}
             localStorage.setItem(KEY, JSON.stringify(state.data));
             console.log("Cloud workspace loaded");
           }
