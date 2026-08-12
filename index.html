@@ -283,21 +283,76 @@ const aiLinks=[
  ["Perplexity","https://www.perplexity.ai/","Web research and answer discovery; free access is available with limits."]
 ];
 
+const PRIVATE_WORKSPACE_ARRAY_KEYS = [
+  "tasks","events","links","snippets","clients","invoices","notes","sheet","jobs",
+  "externalCommunities","customProjects","favorites","focusSessions"
+];
+const PRIVATE_WORKSPACE_OBJECT_KEYS = [
+  "learning","learningProgress","portfolio","portfolioProgress","preferences"
+];
+
+function privateWorkspacePayload(){
+  const payload = {
+    profile: state.data.profile,
+    settings: state.data.settings,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  PRIVATE_WORKSPACE_ARRAY_KEYS.forEach(key => { payload[key] = state.data[key]; });
+  PRIVATE_WORKSPACE_OBJECT_KEYS.forEach(key => { payload[key] = state.data[key]; });
+  return payload;
+}
+
+function applyCloudWorkspace(workspace){
+  if (!workspace || typeof workspace !== "object") return;
+
+  if (workspace.profile) {
+    state.data.profile = { ...state.data.profile, ...workspace.profile };
+  }
+  if (workspace.settings) {
+    state.data.settings = { ...state.data.settings, ...workspace.settings };
+  }
+
+  PRIVATE_WORKSPACE_ARRAY_KEYS.forEach(key => {
+    if (Array.isArray(workspace[key])) state.data[key] = workspace[key];
+  });
+
+  PRIVATE_WORKSPACE_OBJECT_KEYS.forEach(key => {
+    if (workspace[key] && typeof workspace[key] === "object" && !Array.isArray(workspace[key])) {
+      state.data[key] = { ...state.data[key], ...workspace[key] };
+    }
+  });
+}
+
 function save(){
   localStorage.setItem(KEY, JSON.stringify(state.data));
 
   if (typeof auth !== "undefined" && auth && auth.currentUser && db) {
     db.collection("users").doc(auth.currentUser.uid).set({
-      workspace: {
-        profile: state.data.profile,
-        settings: state.data.settings,
-        tasks: state.data.tasks,
-        jobs: state.data.jobs,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-      }
+      workspace: privateWorkspacePayload()
     }, { merge: true })
     .catch(err => console.error("Cloud sync error:", err));
   }
+}
+
+function syncCareerDocToCloud(doc){
+  if (!doc || typeof auth === "undefined" || !auth || !auth.currentUser || !db) return;
+  db.collection("users").doc(auth.currentUser.uid)
+    .collection("careerDocuments").doc(doc.id).set(doc, { merge: true })
+    .catch(err => console.error("Career document cloud sync error:", err));
+}
+
+function deleteCareerDocFromCloud(id){
+  if (!id || typeof auth === "undefined" || !auth || !auth.currentUser || !db) return;
+  db.collection("users").doc(auth.currentUser.uid)
+    .collection("careerDocuments").doc(id).delete()
+    .catch(err => console.error("Career document cloud delete error:", err));
+}
+
+function syncApplicationKitToCloud(kit){
+  if (!kit || typeof auth === "undefined" || !auth || !auth.currentUser || !db) return;
+  db.collection("users").doc(auth.currentUser.uid)
+    .collection("applicationKits").doc(kit.id).set(kit, { merge: true })
+    .catch(err => console.error("Application kit cloud sync error:", err));
 }
 
 function load(){try{const r=localStorage.getItem(KEY);if(r)state.data={...state.data,...JSON.parse(r)}}catch(e){}}
@@ -668,12 +723,12 @@ function careerVaultCards(){
  return docs.map(d=>`<article class="doccard"><div class="cat">${esc(d.kind)}</div><h4>${esc(d.name)}</h4><div class="docmeta">${esc(d.type)} · ${Number(d.text?.length||0).toLocaleString()} extracted characters</div><p class="small muted">${esc((d.text||"").slice(0,170))}${(d.text||"").length>170?"…":""}</p><div class="actions"><button class="btn sm" onclick="previewCareerDoc('${d.id}')">Preview</button><button class="btn sm bad" onclick="deleteCareerDoc('${d.id}')">Delete</button></div></article>`).join("")
 }
 function guessDocKind(n){n=(n||"").toLowerCase();if(/resume|cv/.test(n))return"RESUME";if(/portfolio|case.?study|sample/.test(n))return"PORTFOLIO";if(/cert|training|course/.test(n))return"CERTIFICATE / TRAINING";return"SUPPORTING RESOURCE"}
-async function handleCareerFiles(list){const files=[...list];let added=0,failed=[];for(const file of files){try{const text=await extractCareerFileText(file);if(!text.trim())throw Error("No readable text found");if(state.data.profileDocs.length>=12)throw Error("Vault limit reached (12 resources)");state.data.profileDocs.push({id:uid(),name:file.name,type:file.type||file.name.split(".").pop(),kind:guessDocKind(file.name),text:text.slice(0,180000),addedAt:new Date().toISOString()});added++}catch(e){failed.push(`${file.name}: ${e.message}`)}}save();render();if(added)toast(`${added} resource${added===1?"":"s"} added`);if(failed.length)modal(`<h3>Some files could not be read</h3><p class="small muted">${failed.map(esc).join("<br>")}</p><p>For scanned/image-only PDFs, paste the relevant text manually.</p>`)}
+async function handleCareerFiles(list){const files=[...list];let added=0,failed=[];for(const file of files){try{const text=await extractCareerFileText(file);if(!text.trim())throw Error("No readable text found");if(state.data.profileDocs.length>=12)throw Error("Vault limit reached (12 resources)");const doc={id:uid(),name:file.name,type:file.type||file.name.split(".").pop(),kind:guessDocKind(file.name),text:text.slice(0,180000),addedAt:new Date().toISOString()};state.data.profileDocs.push(doc);syncCareerDocToCloud(doc);added++}catch(e){failed.push(`${file.name}: ${e.message}`)}}save();render();if(added)toast(`${added} resource${added===1?"":"s"} added`);if(failed.length)modal(`<h3>Some files could not be read</h3><p class="small muted">${failed.map(esc).join("<br>")}</p><p>For scanned/image-only PDFs, paste the relevant text manually.</p>`)}
 async function extractCareerFileText(file){const ext=(file.name.split(".").pop()||"").toLowerCase();if(["txt","md","csv","json"].includes(ext))return await file.text();if(ext==="docx"){if(!window.mammoth)throw Error("DOCX reader did not load");const b=await file.arrayBuffer(),r=await mammoth.extractRawText({arrayBuffer:b});return r.value||""}if(ext==="pdf"){if(!window.pdfjsLib)throw Error("PDF reader did not load");pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";const b=await file.arrayBuffer(),pdf=await pdfjsLib.getDocument({data:b}).promise,p=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n),tc=await page.getTextContent();p.push(tc.items.map(x=>x.str).join(" "))}return p.join("\n")}throw Error("Unsupported file type")}
 function openProfileText(){modal(`<h3>Add Career Profile Text</h3><div class="form2"><div><label>Resource name</label><input id="ptname" class="input" value="Career Profile Notes"></div><div><label>Type</label><select id="ptkind" class="input"><option>RESUME</option><option>PORTFOLIO</option><option>CERTIFICATE / TRAINING</option><option selected>SUPPORTING RESOURCE</option></select></div></div><label style="margin-top:9px">Paste text</label><textarea id="pttext" style="min-height:260px"></textarea><button class="btn primary" onclick="saveProfileText()">Save</button>`)}
-function saveProfileText(){const text=document.getElementById("pttext").value.trim();if(!text)return toast("Paste some profile text");state.data.profileDocs.push({id:uid(),name:document.getElementById("ptname").value||"Career Profile Notes",type:"text",kind:document.getElementById("ptkind").value,text,addedAt:new Date().toISOString()});save();closeModal();render()}
+function saveProfileText(){const text=document.getElementById("pttext").value.trim();if(!text)return toast("Paste some profile text");const doc={id:uid(),name:document.getElementById("ptname").value||"Career Profile Notes",type:"text",kind:document.getElementById("ptkind").value,text,addedAt:new Date().toISOString()};state.data.profileDocs.push(doc);syncCareerDocToCloud(doc);save();closeModal();render()}
 function previewCareerDoc(id){const d=state.data.profileDocs.find(x=>x.id===id);if(d)modal(`<div class="cat">${esc(d.kind)}</div><h3>${esc(d.name)}</h3><textarea readonly style="min-height:430px">${esc(d.text)}</textarea>`)}
-function deleteCareerDoc(id){if(confirm("Delete this career resource?")){state.data.profileDocs=state.data.profileDocs.filter(x=>x.id!==id);save();render()}}
+function deleteCareerDoc(id){if(confirm("Delete this career resource?")){state.data.profileDocs=state.data.profileDocs.filter(x=>x.id!==id);deleteCareerDocFromCloud(id);save();render()}}
 function profileCorpus(){const p=state.data.profile;return[p.name,p.title,(p.niches||[]).join(" "),p.skills,p.location,(state.data.profileDocs||[]).map(d=>d.text).join("\n")].filter(Boolean).join("\n")}
 const FIT_SKILLS=["google workspace","gmail","google calendar","google sheets","google docs","microsoft office","excel","word","powerpoint","outlook","canva","capcut","photoshop","figma","notion","clickup","trello","asana","slack","zoom","calendly","loom","hubspot","salesforce","gohighlevel","mailchimp","manychat","zapier","make.com","n8n","shopify","woocommerce","amazon","quickbooks","xero","bookkeeping","data entry","crm","lead generation","prospecting","cold email","calendar management","inbox management","email management","travel planning","meeting coordination","executive support","administrative support","project management","operations","sop","research","market research","customer support","customer service","community management","social media management","content creation","content scheduling","copywriting","seo","google analytics","meta business suite","facebook ads","google ads","recruitment","candidate sourcing","interview scheduling","onboarding","real estate","property management","transaction coordination","wordpress","webflow","html","css","javascript","python","sql","data analysis","communication","time management","organization","attention to detail"];
 const FIT_STOP=new Set("the and for with that this from your you are our their have has had will would should could can may into about job role work working required requirements preferred plus team company candidate candidates responsibilities responsibility skills skill experience years year remote position looking must using use used support".split(" "));
@@ -687,7 +742,7 @@ let activeAnalysisJob={};
 function openJobAnalyzer(desc,title,job={},auto=false){activeAnalysisJob=job;modal(`<div class="cat">CAREER PROFILE + JOB ANALYZER</div><h3>${esc(title)}</h3>${state.data.profileDocs.length?`<span class="pill good">${state.data.profileDocs.length} career resources loaded</span>`:`<div class="livebar"><strong>Tip:</strong> upload your resume/portfolio first for stronger evidence.</div>`}<label style="margin-top:10px">Job description</label><textarea id="jd" style="min-height:300px">${esc(desc)}</textarea><div id="fitout" class="preview"></div><button class="btn primary" onclick="runFit(${auto})">Analyze Evidence Fit</button><div id="kitroot"></div>`);if(auto)setTimeout(()=>runFit(true),40)}
 function runFit(auto=false){const d=document.getElementById("jd").value.trim(),job={...activeAnalysisJob,description:d},a=evidenceFitAnalysis(d,job);document.getElementById("fitout").innerHTML=fitResultHTML(a);if(job.url){const rec=saveJobRecord(job,"REVIEWING");rec.fitScore=a.score;save()}document.getElementById("kitroot").innerHTML=(auto||a.score>=75)?renderGroundedKit(job,a):`<hr><div class="head"><div><h3>Application Draft</h3><p class="small muted">Fit is below the automatic strong-fit threshold. Review gaps first.</p></div><button class="btn" onclick="manualGroundedKit()">Create Draft Anyway</button></div>`}
 function manualGroundedKit(){const d=document.getElementById("jd").value.trim(),job={...activeAnalysisJob,description:d},a=evidenceFitAnalysis(d,job);document.getElementById("kitroot").innerHTML=renderGroundedKit(job,a)}
-function renderGroundedKit(job,a){const k=groundedKit(job,a);state.data.applicationKits.unshift({id:uid(),jobTitle:job.title||"",company:job.company||"",score:a.score,...k,createdAt:new Date().toISOString()});state.data.applicationKits=state.data.applicationKits.slice(0,40);save();return `<hr><div class="head"><div><h3>Application Kit</h3><p class="small muted">Generated from available evidence. Review before sending.</p></div><span class="pill ${a.score>=75?"good":"warn"}">${a.score>=75?"STRONG FIT KIT":"REVIEW GAPS"}</span></div><div class="tabs"><button class="tab active" onclick="switchKit('cover',this)">Cover Letter</button><button class="tab" onclick="switchKit('email',this)">Application Email</button><button class="tab" onclick="switchKit('interview',this)">Interview Prep</button></div><textarea id="kitcover" class="kitarea">${esc(k.cover)}</textarea><textarea id="kitemail" class="kitarea hidden">${esc(k.email)}</textarea><textarea id="kitinterview" class="kitarea hidden">${esc(k.interview)}</textarea><div class="actions"><button class="btn primary" onclick="copyActiveKit()">Copy</button><button class="btn" onclick="downloadActiveKit()">Download TXT</button></div>`}
+function renderGroundedKit(job,a){const k=groundedKit(job,a);const kit={id:uid(),jobTitle:job.title||"",company:job.company||"",score:a.score,...k,createdAt:new Date().toISOString()};state.data.applicationKits.unshift(kit);state.data.applicationKits=state.data.applicationKits.slice(0,40);syncApplicationKitToCloud(kit);save();return `<hr><div class="head"><div><h3>Application Kit</h3><p class="small muted">Generated from available evidence. Review before sending.</p></div><span class="pill ${a.score>=75?"good":"warn"}">${a.score>=75?"STRONG FIT KIT":"REVIEW GAPS"}</span></div><div class="tabs"><button class="tab active" onclick="switchKit('cover',this)">Cover Letter</button><button class="tab" onclick="switchKit('email',this)">Application Email</button><button class="tab" onclick="switchKit('interview',this)">Interview Prep</button></div><textarea id="kitcover" class="kitarea">${esc(k.cover)}</textarea><textarea id="kitemail" class="kitarea hidden">${esc(k.email)}</textarea><textarea id="kitinterview" class="kitarea hidden">${esc(k.interview)}</textarea><div class="actions"><button class="btn primary" onclick="copyActiveKit()">Copy</button><button class="btn" onclick="downloadActiveKit()">Download TXT</button></div>`}
 function switchKit(k,b){["cover","email","interview"].forEach(x=>document.getElementById("kit"+x)?.classList.toggle("hidden",x!==k));b.parentElement.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));b.classList.add("active")}
 function activeKitArea(){return["kitcover","kitemail","kitinterview"].map(id=>document.getElementById(id)).find(x=>x&&!x.classList.contains("hidden"))}
 function copyActiveKit(){const e=activeKitArea();if(e)copyText(e.value)}function downloadActiveKit(){const e=activeKitArea();if(e)downloadText("application-draft.txt",e.value)}
@@ -1273,28 +1328,49 @@ if (auth) {
           if (userDoc.exists) {
             const cloudData = userDoc.data();
 
-            if (cloudData.workspace?.profile) {
-              state.data.profile = {
-                ...state.data.profile,
-                ...cloudData.workspace.profile
-              };
+            applyCloudWorkspace(cloudData.workspace);
+
+            try {
+              const careerSnap = await db.collection("users").doc(user.uid)
+                .collection("careerDocuments").get();
+              const localCareerDocs = Array.isArray(state.data.profileDocs) ? state.data.profileDocs : [];
+              if (!careerSnap.empty) {
+                const mergedCareer = new Map(localCareerDocs.map(item => [item.id, item]));
+                careerSnap.docs.forEach(doc => {
+                  const item = doc.data();
+                  if (item?.id) mergedCareer.set(item.id, item);
+                });
+                state.data.profileDocs = [...mergedCareer.values()];
+              } else if (localCareerDocs.length) {
+                localCareerDocs.forEach(syncCareerDocToCloud);
+              }
+            } catch (careerErr) {
+              console.error("Career Vault cloud load error:", careerErr);
             }
 
-            if (cloudData.workspace?.settings) {
-              state.data.settings = {
-                ...state.data.settings,
-                ...cloudData.workspace.settings
-              };
+            try {
+              const kitsSnap = await db.collection("users").doc(user.uid)
+                .collection("applicationKits").orderBy("createdAt", "desc").limit(40).get();
+              const localKits = Array.isArray(state.data.applicationKits) ? state.data.applicationKits : [];
+              if (!kitsSnap.empty) {
+                const mergedKits = new Map(localKits.map(item => [item.id, item]));
+                kitsSnap.docs.forEach(doc => {
+                  const item = doc.data();
+                  if (item?.id) mergedKits.set(item.id, item);
+                });
+                state.data.applicationKits = [...mergedKits.values()]
+                  .sort((a,b) => String(b.createdAt||"").localeCompare(String(a.createdAt||"")))
+                  .slice(0,40);
+              } else if (localKits.length) {
+                localKits.slice(0,40).forEach(syncApplicationKitToCloud);
+              }
+            } catch (kitErr) {
+              console.error("Application Kits cloud load error:", kitErr);
             }
-if (Array.isArray(cloudData.workspace?.tasks)) {
-  state.data.tasks = cloudData.workspace.tasks;
-}
 
-if (Array.isArray(cloudData.workspace?.jobs)) {
-  state.data.jobs = cloudData.workspace.jobs;
-}
             localStorage.setItem(KEY, JSON.stringify(state.data));
-            console.log("Cloud workspace loaded");
+            save();
+            console.log("Private cloud workspace loaded and backfilled");
           }
         } catch (err) {
   console.error("Cloud load error:", err);
