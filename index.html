@@ -117,7 +117,7 @@ body.compact .pad{padding:15px} body.reduced *{animation:none!important;transiti
   <button class="nav" data-page="learn"><span class="ic">◫</span>Learn</button>
   <div class="navlabel">PERSONAL</div>
   <button class="nav" data-page="settings"><span class="ic">⚙</span>Settings</button>
-  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Local data stays in your browser unless you export it.</div>
+  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Private workspace data syncs to your signed-in account; shared Community rooms use separate Firestore collections.</div>
 </aside>
 
 <main class="main">
@@ -159,6 +159,87 @@ const state={
   learning:{},learningProgress:{},portfolio:{},portfolioProgress:{},favorites:[],focusSessions:[],preferences:{}
  }
 };
+
+
+
+// --- Shared Community realtime runtime state (not private workspace data) ---
+const communityState = {
+  rooms: [],
+  loading: true,
+  error: "",
+  joined: false,
+  joining: false,
+  messages: [],
+  resources: [],
+  members: [],
+  roomsUnsub: null,
+  messagesUnsub: null,
+  resourcesUnsub: null,
+  membersUnsub: null
+};
+
+function communityMaybeRender(){
+  if (state.page === "community" && authState && authState.user) render();
+}
+function stopActiveRoomRealtime(){
+  ["messagesUnsub","resourcesUnsub","membersUnsub"].forEach(k=>{
+    try { if (typeof communityState[k] === "function") communityState[k](); } catch(e){}
+    communityState[k] = null;
+  });
+  communityState.messages = [];
+  communityState.resources = [];
+  communityState.members = [];
+  communityState.joined = false;
+  communityState.joining = false;
+}
+function stopCommunityRealtime(){
+  stopActiveRoomRealtime();
+  try { if (typeof communityState.roomsUnsub === "function") communityState.roomsUnsub(); } catch(e){}
+  communityState.roomsUnsub = null;
+  communityState.rooms = [];
+  communityState.loading = false;
+  communityState.error = "";
+  state.activeRoom = null;
+}
+function startCommunityRealtime(){
+  if (!db || !auth || !auth.currentUser) return;
+  if (typeof communityState.roomsUnsub === "function") communityState.roomsUnsub();
+  communityState.loading = true;
+  communityState.error = "";
+  communityState.roomsUnsub = db.collection("rooms")
+    .where("visibility", "==", "public")
+    .onSnapshot(snap => {
+      communityState.rooms = snap.docs.map(d => ({ id:d.id, ...d.data() }))
+        .sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0));
+      communityState.loading = false;
+      if (state.activeRoom && !communityState.rooms.some(r=>r.id===state.activeRoom)) {
+        stopActiveRoomRealtime();
+        state.activeRoom = null;
+      }
+      communityMaybeRender();
+    }, err => {
+      console.error("Community room list error:", err);
+      communityState.loading = false;
+      communityState.error = err.message || "Unable to load community rooms.";
+      communityMaybeRender();
+    });
+}
+function communityUserName(){
+  const u = authState?.user;
+  return state.data.profile?.name || u?.displayName || (u?.email ? u.email.split("@")[0] : "Member");
+}
+function communityUserPhoto(){ return authState?.user?.photoURL || ""; }
+function roomById(id){ return communityState.rooms.find(r=>r.id===id); }
+function roomDate(v){
+  if (!v) return "";
+  try {
+    if (typeof v.toDate === "function") return v.toDate().toLocaleString();
+    return new Date(v).toLocaleString();
+  } catch { return ""; }
+}
+function activeRoomIsOwner(){
+  return !!(authState?.user && roomById(state.activeRoom)?.ownerId === authState.user.uid);
+}
 
 const pages={home:"Home",desk:"Desk",community:"Community & Rooms",jobs:"Find Work",tracker:"Application Tracker",portfolio:"Portfolio Lab",tools:"Tools",workflows:"Workflows",guides:"Guides",learn:"Learn",settings:"Settings"};
 
@@ -402,7 +483,7 @@ function renderHome(){
    <button onclick="navigate('jobs')"><strong>⌕ Find Work</strong><span>Jobs + direct job-board links.</span></button>
    <button onclick="openAssistant()"><strong>✦ Open DeskMate</strong><span>Generate applications, replies, SOPs, briefs & more.</span></button>
    <button onclick="quickThemeToggle()"><strong>◐ Switch Theme</strong><span>Instant Light / Dark mode.</span></button>
-   <button onclick="navigate('community')"><strong>◎ Community & Rooms</strong><span>Open your internal rooms.</span></button>
+   <button onclick="navigate('community')"><strong>◎ Community & Rooms</strong><span>Open real shared rooms.</span></button>
    <button onclick="openAppearanceSettings()"><strong>⚙ Customize</strong><span>Theme, accent, text size & density.</span></button>
   </div></section></div>
   <div class="grid">
@@ -477,27 +558,118 @@ function removeItem(k,id){state.data[k]=state.data[k].filter(x=>x.id!==id);save(
 function renderCommunity(){
  const tab=state.communityTab||"Rooms";
  const body=tab==="Rooms"?renderRooms():renderExternalCommunities();
- return `<div class="head"><div><div class="eyebrow">Build your own workspace community</div><h2 class="title">Community & Rooms</h2><p class="muted">Create local rooms for job hunting, learning, projects, accountability, or your own community notes—not only links to outside groups.</p></div></div>${tabs(["Rooms","External Communities"],tab,"setCommunityTab")}${body}`;
+ return `<div class="head"><div><div class="eyebrow">Shared freelancer community</div><h2 class="title">Community & Rooms</h2><p class="muted">Real shared rooms powered by Cloud Firestore. Room messages, members and resources update across signed-in users in real time.</p></div><span class="pill good">● LIVE CLOUD</span></div>${tabs(["Rooms","External Communities"],tab,"setCommunityTab")}${body}`;
 }
 function setCommunityTab(x){state.communityTab=x;render()}
-function ensureRoom(){if(!state.activeRoom&&state.data.rooms.length)state.activeRoom=state.data.rooms[0].id}
 function renderRooms(){
- ensureRoom();const room=state.data.rooms.find(r=>r.id===state.activeRoom);
- return `<div class="head"><div class="actions"><button class="btn primary" onclick="openCreateRoom()">＋ Create Room</button><button class="btn" onclick="createRoomTemplate('Job Hunt Room')">Job Hunt Template</button><button class="btn" onclick="createRoomTemplate('Study Room')">Study Template</button><button class="btn" onclick="createRoomTemplate('Client Project Room')">Project Template</button></div><span class="small muted">V4 rooms are fully functional and private to this browser. True multi-user sync needs a backend later.</span></div>
- <div class="roomlayout"><section class="card pad roomlist">${state.data.rooms.map(r=>`<div class="roomitem ${r.id===state.activeRoom?"active":""}" onclick="selectRoom('${r.id}')"><strong>${esc(r.name)}</strong><div class="small muted">${esc(r.purpose||r.type)} · ${(r.messages||[]).length} messages</div></div>`).join("")||'<div class="empty">Create your first internal room.</div>'}</section><section class="card pad chatbox">${room?roomPanel(room):'<div class="empty">Choose or create a room.</div>'}</section></div>`;
+ const room=roomById(state.activeRoom);
+ const status = communityState.loading
+   ? `<div class="livebar">Connecting to shared rooms…</div>`
+   : communityState.error
+     ? `<div class="auth-alert error">${esc(communityState.error)}</div>`
+     : `<div class="livebar">Shared rooms are live. Opening a public room joins you as a member so you can read and post messages.</div>`;
+ const roomList = communityState.rooms.map(r=>`<div class="roomitem ${r.id===state.activeRoom?"active":""}" onclick="selectRoom('${r.id}')"><strong>${esc(r.name||"Untitled Room")}</strong><div class="small muted">${esc(r.type||"Community")} · ${esc(r.purpose||"Public shared room")}</div><div class="tiny muted" style="margin-top:5px">Created by ${esc(r.ownerName||"Member")}</div></div>`).join("") || `<div class="empty">No public rooms yet. Create the first shared room.</div>`;
+ return `${status}<div class="head"><div class="actions"><button class="btn primary" onclick="openCreateRoom()">＋ Create Shared Room</button></div><span class="small muted">Private workspace data stays under your own user account and is not exposed here.</span></div>
+ <div class="roomlayout"><section class="card pad roomlist">${roomList}</section><section class="card pad chatbox">${room?roomPanel(room):'<div class="empty">Choose a room on the left, or create a new shared room.</div>'}</section></div>`;
 }
-function roomPanel(r){const msgs=r.messages||[];return `<div class="head"><div><h3>${esc(r.name)}</h3><div class="small muted">${esc(r.purpose||"")}</div></div><div class="actions"><button class="btn sm" onclick="openRoomResource('${r.id}')">＋ Resource</button><button class="btn sm" onclick="exportRoom('${r.id}')">Export</button><button class="btn sm bad" onclick="deleteRoom('${r.id}')">Delete Room</button></div></div>${r.resources?.length?`<div class="row">${r.resources.map(x=>`<a class="pill" href="${esc(x.url)}" target="_blank" rel="noopener">↗ ${esc(x.name)}</a>`).join("")}</div><hr>`:""}<div class="messages" id="roomMessages">${msgs.map(m=>`<div class="message ${m.author===state.data.profile.name?"mine":""} ${m.pinned?"pinned":""}"><div class="meta small muted">${esc(m.author)} · ${new Date(m.at).toLocaleString()} ${m.pinned?"· PINNED":""}</div><div>${esc(m.text)}</div><div class="actions"><button class="btn sm" onclick="togglePinMessage('${r.id}','${m.id}')">${m.pinned?"Unpin":"Pin"}</button><button class="btn sm bad" onclick="deleteRoomMessage('${r.id}','${m.id}')">Delete</button></div></div>`).join("")||'<div class="empty">No messages yet. Use this room for notes, planning, accountability, or discussion logs.</div>'}</div><div class="form2" style="margin-top:10px"><input id="roomAuthor" class="input" value="${esc(state.data.profile.name)}" placeholder="Name"><input id="roomMsg" class="input" placeholder="Write a message…"></div><button class="btn primary" style="margin-top:8px" onclick="sendRoomMessage('${r.id}')">Send Message</button>`}
-function openCreateRoom(){modal(`<h3>Create Internal Room</h3><div class="form2"><div><label>Room name</label><input id="rname" class="input"></div><div><label>Type</label><select id="rtype" class="input"><option>General</option><option>Job Hunt</option><option>Study</option><option>Client Project</option><option>Accountability</option><option>Community</option></select></div></div><label style="margin-top:9px">Purpose</label><textarea id="rpurpose"></textarea><button class="btn primary" onclick="createRoom()">Create Room</button>`)}
-function createRoom(){const name=document.getElementById("rname").value.trim();if(!name)return toast("Name the room");const r={id:uid(),name,type:document.getElementById("rtype").value,purpose:document.getElementById("rpurpose").value,messages:[],resources:[],createdAt:new Date().toISOString()};state.data.rooms.unshift(r);state.activeRoom=r.id;save();closeModal();render()}
-function createRoomTemplate(type){const presets={"Job Hunt Room":["Job Hunt Room","Track openings, application ideas, interview notes and accountability."],"Study Room":["Study Room","Keep lesson notes, practice tasks and questions together."],"Client Project Room":["Client Project Room","Centralize project notes, links, updates and decisions."]};const [name,purpose]=presets[type];const r={id:uid(),name,type,purpose,messages:[{id:uid(),author:"DeskMate",text:`Room created from the ${type} template. Add notes, links and progress here.`,at:new Date().toISOString(),pinned:true}],resources:[],createdAt:new Date().toISOString()};state.data.rooms.unshift(r);state.activeRoom=r.id;save();render();toast("Room created")}
-function selectRoom(id){state.activeRoom=id;render()}
-function sendRoomMessage(id){const r=state.data.rooms.find(x=>x.id===id),text=document.getElementById("roomMsg").value.trim(),author=document.getElementById("roomAuthor").value.trim()||state.data.profile.name;if(!text)return;r.messages=r.messages||[];r.messages.push({id:uid(),author,text,at:new Date().toISOString(),pinned:false});save();render()}
-function togglePinMessage(rid,mid){const r=state.data.rooms.find(x=>x.id===rid),m=r?.messages.find(x=>x.id===mid);if(m)m.pinned=!m.pinned;save();render()}
-function deleteRoomMessage(rid,mid){const r=state.data.rooms.find(x=>x.id===rid);if(r)r.messages=r.messages.filter(x=>x.id!==mid);save();render()}
-function openRoomResource(rid){modal(`<h3>Add Room Resource</h3><label>Name</label><input id="rrname" class="input"><label style="margin-top:9px">URL</label><input id="rrurl" class="input" placeholder="https://..."><button class="btn primary" onclick="addRoomResource('${rid}')">Add Resource</button>`)}
-function addRoomResource(rid){const r=state.data.rooms.find(x=>x.id===rid);if(!r)return;let u=document.getElementById("rrurl").value.trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;r.resources=r.resources||[];r.resources.push({id:uid(),name:document.getElementById("rrname").value||u,url:u});save();closeModal();render()}
-function exportRoom(rid){const r=state.data.rooms.find(x=>x.id===rid);if(!r)return;const text=`${r.name}\n${r.purpose||""}\n\n`+(r.messages||[]).map(m=>`[${new Date(m.at).toLocaleString()}] ${m.author}: ${m.text}`).join("\n\n");downloadText(`${r.name.replace(/[^\w-]+/g,"-")}.txt`,text)}
-function deleteRoom(id){if(!confirm("Delete this room and its local messages?"))return;state.data.rooms=state.data.rooms.filter(x=>x.id!==id);state.activeRoom=state.data.rooms[0]?.id||null;save();render()}
+function roomPanel(r){
+ const u=authState?.user, owner=r.ownerId===u?.uid;
+ if(communityState.joining) return `<div class="empty">Joining <strong>${esc(r.name)}</strong>…</div>`;
+ if(!communityState.joined) return `<div class="head"><div><h3>${esc(r.name)}</h3><div class="small muted">${esc(r.purpose||"")}</div></div></div><div class="card pad" style="box-shadow:none"><p>This is a public shared room. Join it to see its messages, members and shared resources.</p><div class="actions"><button class="btn primary" onclick="joinActiveRoom()">Join & Open Room</button><button class="btn" onclick="copyText('${esc(r.id)}')">Copy Room ID</button></div></div>`;
+ const msgs=communityState.messages, resources=communityState.resources, members=communityState.members;
+ return `<div class="head"><div><h3>${esc(r.name)}</h3><div class="small muted">${esc(r.purpose||"")} · ${members.length} member${members.length===1?"":"s"}</div></div><div class="actions"><button class="btn sm" onclick="openRoomResource('${r.id}')">＋ Resource</button><button class="btn sm" onclick="copyText('${esc(r.id)}')">Copy Room ID</button>${owner?`<button class="btn sm bad" onclick="deleteRoom('${r.id}')">Delete Room</button>`:`<button class="btn sm bad" onclick="leaveRoom('${r.id}')">Leave</button>`}</div></div>
+ ${resources.length?`<div class="row">${resources.map(x=>`<a class="pill" href="${esc(x.url)}" target="_blank" rel="noopener">↗ ${esc(x.name)}</a>`).join("")}</div><hr>`:""}
+ <div class="messages" id="roomMessages">${msgs.map(m=>{const mine=m.authorId===u?.uid, canManage=mine||owner;return `<div class="message ${mine?"mine":""} ${m.pinned?"pinned":""}"><div class="meta small muted">${esc(m.authorName||"Member")} · ${esc(roomDate(m.createdAt)||roomDate(m.createdAtMs))} ${m.pinned?"· PINNED":""}</div><div>${esc(m.text||"")}</div>${canManage?`<div class="actions"><button class="btn sm" onclick="togglePinMessage('${r.id}','${m.id}',${m.pinned?"true":"false"})">${m.pinned?"Unpin":"Pin"}</button><button class="btn sm bad" onclick="deleteRoomMessage('${r.id}','${m.id}')">Delete</button></div>`:""}</div>`}).join("")||'<div class="empty">No messages yet. Start the conversation.</div>'}</div>
+ <div style="margin-top:10px"><label>Message as ${esc(communityUserName())}</label><textarea id="roomMsg" class="input" style="min-height:76px" placeholder="Write a message…"></textarea></div><button class="btn primary" style="margin-top:8px" onclick="sendRoomMessage('${r.id}')">Send Message</button>`;
+}
+function openCreateRoom(){
+ modal(`<h3>Create Shared Room</h3><p class="small muted">Rooms created here are public to signed-in Freelance Desk users. Only members can read or post messages.</p><div class="form2"><div><label>Room name</label><input id="rname" class="input" placeholder="e.g. VA Job Hunt"></div><div><label>Type</label><select id="rtype" class="input"><option>General</option><option>Job Hunt</option><option>Study</option><option>Client Project</option><option>Accountability</option><option>Community</option></select></div></div><label style="margin-top:9px">Purpose</label><textarea id="rpurpose" placeholder="What is this room for?"></textarea><button class="btn primary" onclick="createRoom()">Create Shared Room</button>`)
+}
+async function createRoom(){
+ if(!db||!auth?.currentUser)return toast("Please sign in first");
+ const name=document.getElementById("rname").value.trim();if(!name)return toast("Name the room");
+ const roomRef=db.collection("rooms").doc();
+ const payload={name,type:document.getElementById("rtype").value,purpose:document.getElementById("rpurpose").value.trim(),visibility:"public",ownerId:auth.currentUser.uid,ownerName:communityUserName(),createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdAtMs:Date.now(),updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+ try{
+  await roomRef.set(payload);
+  await roomRef.collection("members").doc(auth.currentUser.uid).set({uid:auth.currentUser.uid,displayName:communityUserName(),photoURL:communityUserPhoto(),role:"owner",joinedAt:firebase.firestore.FieldValue.serverTimestamp(),joinedAtMs:Date.now()});
+  closeModal();state.activeRoom=roomRef.id;communityState.joined=true;attachActiveRoomRealtime(roomRef.id);toast("Shared room created");
+ }catch(err){console.error("Create room error:",err);alert("Could not create room: "+(err.message||err));}
+}
+function selectRoom(id){
+ state.activeRoom=id;
+ stopActiveRoomRealtime();
+ render();
+ joinActiveRoom();
+}
+async function joinActiveRoom(){
+ const id=state.activeRoom, room=roomById(id), user=auth?.currentUser;
+ if(!id||!room||!user||!db)return;
+ if(communityState.joining)return;
+ communityState.joining=true;communityMaybeRender();
+ const memberRef=db.collection("rooms").doc(id).collection("members").doc(user.uid);
+ try{
+  // A first visit creates membership. If the member already exists, the current rules may reject this update;
+  // that permission error is harmless because the existing membership already grants room access.
+  await memberRef.set({uid:user.uid,displayName:communityUserName(),photoURL:communityUserPhoto(),role:room.ownerId===user.uid?"owner":"member",joinedAt:firebase.firestore.FieldValue.serverTimestamp(),joinedAtMs:Date.now()});
+ }catch(err){
+  if(err?.code!=="permission-denied"){
+    communityState.joining=false;communityState.error=err.message||"Unable to join room.";communityMaybeRender();return;
+  }
+ }
+ communityState.joining=false;communityState.joined=true;attachActiveRoomRealtime(id);communityMaybeRender();
+}
+function attachActiveRoomRealtime(id){
+ stopActiveRoomRealtime();
+ communityState.joined=true;
+ const roomRef=db.collection("rooms").doc(id);
+ communityState.messagesUnsub=roomRef.collection("messages").onSnapshot(snap=>{
+  communityState.messages=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.createdAtMs||0)-(b.createdAtMs||0));communityMaybeRender();
+ },err=>{console.error("Room messages error:",err);communityState.error=err.message||"Unable to read room messages.";communityMaybeRender();});
+ communityState.resourcesUnsub=roomRef.collection("resources").onSnapshot(snap=>{
+  communityState.resources=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.createdAtMs||0)-(a.createdAtMs||0));communityMaybeRender();
+ },err=>console.error("Room resources error:",err));
+ communityState.membersUnsub=roomRef.collection("members").onSnapshot(snap=>{
+  communityState.members=snap.docs.map(d=>({id:d.id,...d.data()}));communityMaybeRender();
+ },err=>console.error("Room members error:",err));
+}
+async function sendRoomMessage(id){
+ const text=document.getElementById("roomMsg")?.value.trim(), user=auth?.currentUser;if(!text||!user||!db)return;
+ try{
+  await db.collection("rooms").doc(id).collection("messages").add({authorId:user.uid,authorName:communityUserName(),photoURL:communityUserPhoto(),text,pinned:false,createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdAtMs:Date.now()});
+ }catch(err){console.error("Send message error:",err);alert("Could not send message: "+(err.message||err));}
+}
+async function togglePinMessage(rid,mid,pinned){
+ try{await db.collection("rooms").doc(rid).collection("messages").doc(mid).update({pinned:!pinned});}catch(err){console.error("Pin message error:",err);alert("Could not update message: "+(err.message||err));}
+}
+async function deleteRoomMessage(rid,mid){
+ if(!confirm("Delete this message?"))return;
+ try{await db.collection("rooms").doc(rid).collection("messages").doc(mid).delete();}catch(err){console.error("Delete message error:",err);alert("Could not delete message: "+(err.message||err));}
+}
+function openRoomResource(rid){modal(`<h3>Add Shared Resource</h3><label>Name</label><input id="rrname" class="input"><label style="margin-top:9px">URL</label><input id="rrurl" class="input" placeholder="https://..."><button class="btn primary" onclick="addRoomResource('${rid}')">Add Resource</button>`)}
+async function addRoomResource(rid){
+ const user=auth?.currentUser;if(!user||!db)return;let u=document.getElementById("rrurl").value.trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;const name=document.getElementById("rrname").value.trim()||u;if(!u)return toast("Add a resource URL");
+ try{await db.collection("rooms").doc(rid).collection("resources").add({authorId:user.uid,authorName:communityUserName(),name,url:u,createdAt:firebase.firestore.FieldValue.serverTimestamp(),createdAtMs:Date.now()});closeModal();toast("Resource shared");}catch(err){console.error("Add resource error:",err);alert("Could not add resource: "+(err.message||err));}
+}
+async function leaveRoom(rid){
+ const user=auth?.currentUser;if(!user||!db)return;if(!confirm("Leave this room?"))return;
+ try{await db.collection("rooms").doc(rid).collection("members").doc(user.uid).delete();stopActiveRoomRealtime();state.activeRoom=null;render();toast("Left room");}catch(err){console.error("Leave room error:",err);alert("Could not leave room: "+(err.message||err));}
+}
+async function deleteRoom(id){
+ const room=roomById(id), user=auth?.currentUser;if(!room||!user||room.ownerId!==user.uid)return toast("Only the room owner can delete it");if(!confirm("Delete this shared room, including its messages, members and resources?"))return;
+ const roomRef=db.collection("rooms").doc(id);
+ try{
+  for(const sub of ["messages","resources","members"]){const snap=await roomRef.collection(sub).get();await Promise.all(snap.docs.map(d=>d.ref.delete()));}
+  await roomRef.delete();stopActiveRoomRealtime();state.activeRoom=null;toast("Room deleted");
+ }catch(err){console.error("Delete room error:",err);alert("Could not delete room: "+(err.message||err));}
+}
+function createRoomTemplate(type){
+ const presets={"Job Hunt Room":["Job Hunt Room","Share openings, application ideas, interview notes and accountability."],"Study Room":["Study Room","Share lesson notes, practice tasks and questions."],"Client Project Room":["Client Project Room","Coordinate project updates, links and decisions."]};
+ const p=presets[type];openCreateRoom();setTimeout(()=>{const n=document.getElementById("rname"),purpose=document.getElementById("rpurpose"),sel=document.getElementById("rtype");if(n)n.value=p[0];if(purpose)purpose.value=p[1];if(sel)sel.value=type.includes("Job")?"Job Hunt":type.includes("Study")?"Study":"Client Project";},0);
+}
+function exportRoom(rid){
+ const r=roomById(rid);if(!r)return;const text=`${r.name}\n${r.purpose||""}\n\n`+communityState.messages.map(m=>`[${roomDate(m.createdAt)||roomDate(m.createdAtMs)}] ${m.authorName||"Member"}: ${m.text||""}`).join("\n\n");downloadText(`${r.name.replace(/[^\w-]+/g,"-")}.txt`,text)
+}
 function renderExternalCommunities(){return `<div class="head"><h3>External Communities</h3><button class="btn primary" onclick="openExternalCommunity()">＋ Add Community</button></div><div class="grid"><section class="card pad c8">${state.data.externalCommunities.map(c=>`<div class="list-item"><h4>${esc(c.name)}</h4><p>${esc(c.platform)} · ${esc(c.notes||"")}</p><div class="actions"><a class="btn sm" href="${esc(c.url)}" target="_blank" rel="noopener">Open</a><button class="btn sm bad" onclick="removeItem('externalCommunities','${c.id}')">Delete</button></div></div>`).join("")||'<div class="empty">Save Facebook groups, Reddit communities, Slack/Discord spaces or professional communities here.</div>'}</section><section class="card pad c4"><h3>Rule reminder</h3><p class="small muted">Always read current community rules before posting, linking, promoting or messaging.</p><div class="actions"><a class="btn" target="_blank" rel="noopener" href="https://www.reddit.com/r/freelance/">r/freelance</a><a class="btn" target="_blank" rel="noopener" href="https://www.reddit.com/r/smallbusiness/">r/smallbusiness</a></div></section></div>`}
 function openExternalCommunity(){modal(`<h3>Add External Community</h3><div class="form2"><div><label>Name</label><input id="cmname" class="input"></div><div><label>Platform</label><select id="cmplatform" class="input"><option>Facebook</option><option>Reddit</option><option>Discord</option><option>Slack</option><option>LinkedIn</option><option>Other</option></select></div></div><label style="margin-top:9px">URL</label><input id="cmurl" class="input"><label style="margin-top:9px">Rules / notes</label><textarea id="cmnotes"></textarea><button class="btn primary" onclick="addExternalCommunity()">Save</button>`)}
 function addExternalCommunity(){let u=document.getElementById("cmurl").value.trim();if(u&&!/^https?:\/\//i.test(u))u="https://"+u;state.data.externalCommunities.push({id:uid(),name:document.getElementById("cmname").value,platform:document.getElementById("cmplatform").value,url:u,notes:document.getElementById("cmnotes").value});save();closeModal();render()}
@@ -1246,7 +1418,7 @@ function settingsData(){
    <div class="setting-row"><div><h4>Auth Provider</h4><p>${esc(u.providerData && u.providerData[0] ? u.providerData[0].providerId : "password")}</p></div></div>
   ` : '<p class="small warn">Not authenticated.</p>'}
  </section>
- <section class="card pad"><h3>Data Backup & Privacy</h3><p class="small muted">Workspace data is stored locally in this browser.</p><div class="actions"><button class="btn" onclick="exportData()">Export JSON</button><button class="btn" onclick="document.getElementById('ifile').click()">Import JSON</button><input id="ifile" type="file" accept=".json,application/json" class="hidden" onchange="importData(this.files[0])"><button class="btn" onclick="clearJobCache()">Clear Job Cache</button><button class="btn bad" onclick="resetAll()">Reset All</button></div></section>`
+ <section class="card pad"><h3>Data Backup & Privacy</h3><p class="small muted">Private workspace data is cached locally and synced to your signed-in Firestore account. Shared Community rooms are stored separately from your private workspace.</p><div class="actions"><button class="btn" onclick="exportData()">Export JSON</button><button class="btn" onclick="document.getElementById('ifile').click()">Import JSON</button><input id="ifile" type="file" accept=".json,application/json" class="hidden" onchange="importData(this.files[0])"><button class="btn" onclick="clearJobCache()">Clear Job Cache</button><button class="btn bad" onclick="resetAll()">Reset All</button></div></section>`
 }
 function exportData(){const b=new Blob([JSON.stringify({schema:6,exportedAt:new Date().toISOString(),data:state.data},null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="freelance-desk-backup.json";a.click();URL.revokeObjectURL(a.href)}
 function importData(f){if(!f)return;const r=new FileReader();r.onload=()=>{try{const o=JSON.parse(r.result),d=o.data||o;if(!d||typeof d!=="object")throw Error();if(confirm("Import and merge this backup?")){state.data={...state.data,...d,profile:{...state.data.profile,...(d.profile||{})},settings:{...state.data.settings,...(d.settings||{})}};save();applySettings();render();toast("Backup imported")}}catch{alert("Invalid JSON backup.")}};r.readAsText(f)}
@@ -1391,7 +1563,9 @@ if (db) {
         state.data.profile.name = user.displayName;
         save();
       }
+      startCommunityRealtime();
     } else {
+      stopCommunityRealtime();
       authState.error = "";
       authState.message = "";
     }
