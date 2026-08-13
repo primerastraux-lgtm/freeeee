@@ -273,7 +273,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
   <div class="navlabel">PERSONAL</div>
   <button class="nav" data-page="profile"><span class="ic">◉</span>My Profile</button>
   <button class="nav" data-page="settings"><span class="ic">⚙</span>Settings</button>
-  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Private workspace data syncs to your signed-in account; shared Community rooms use separate Firestore collections.<br><span class="tiny muted">Build v27</span></div>
+  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Private workspace data syncs to your signed-in account; shared Community rooms use separate Firestore collections.<br><span class="tiny muted">Build v28</span></div>
 </aside>
 
 <main class="main">
@@ -300,13 +300,36 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
 
 <script>
 const KEY="freelance_desk_v4";
-const FD_BUILD="v27";
-const JOB_CACHE_KEY="freelance_desk_livejobs_v3";
+const FD_BUILD="v28";
+const JOB_CACHE_KEY="freelance_desk_livejobs_v4";
 const DAY=24*60*60*1000;
 const today=()=>new Date().toISOString().slice(0,10);
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]));
-const strip=s=>{const d=document.createElement("div");d.innerHTML=s||"";return (d.textContent||"").replace(/\s+/g," ").trim()};
+const strip=s=>{
+ let value=String(s||"");
+ // Some public job feeds return HTML that is itself HTML-entity encoded.
+ // Decode repeatedly so &lt;div&gt; becomes <div>, then remove the actual markup.
+ for(let i=0;i<3;i++){
+  const d=document.createElement("textarea");
+  d.innerHTML=value;
+  const decoded=d.value;
+  if(decoded===value)break;
+  value=decoded;
+ }
+ const box=document.createElement("div");
+ box.innerHTML=value;
+ // Add spacing around block elements before extracting text so paragraphs do not run together.
+ box.querySelectorAll("p,div,li,br,h1,h2,h3,h4,h5,h6,section,article").forEach(el=>{
+  if(el.tagName==="BR")el.replaceWith(document.createTextNode(" "));
+  else el.appendChild(document.createTextNode(" "));
+ });
+ return (box.textContent||box.innerText||"")
+  .replace(/\u00a0/g," ")
+  .replace(/&nbsp;/gi," ")
+  .replace(/\s+/g," ")
+  .trim();
+};
 const fmtDate=s=>{try{return new Intl.DateTimeFormat(undefined,{dateStyle:"medium"}).format(new Date(s))}catch{return s||"—"}};
 const state={
  page:"home",navHistory:[],deskTab:"tasks",communityTab:"Rooms",activeRoom:null,toolCat:"All",workflowCat:"All",guideCat:"All",learnCat:"All",portfolioCat:"All",settingsTab:"Profile",jobSource:"All",jobView:"All Jobs",liveJobs:[],liveStatus:"",sourceHealth:{},
@@ -1638,7 +1661,7 @@ function addPastedJobPracticePlan(){
 function clearPastedJob(){["manualRole","manualCompany","manualUrl","manualJD"].forEach(id=>{const e=document.getElementById(id);if(e)e.value=""});document.getElementById("manualJobResult").innerHTML="";lastPastedAnalysis=null}
 
 function jobCards(arr){
- return arr.length?arr.slice(0,100).map(j=>`<article class="job card"><div class="row between"><div class="source">${esc(j.source)}</div><span class="pill ${(["24H DELAYED","24H UPDATED"].includes(j.freshness))?"warn":""}">${esc(j.freshness||"SOURCE")}</span></div><h3>${esc(j.title)}</h3><div class="company">${esc(j.company)} · ${esc(j.location||"Location not specified")}</div><div class="jobmeta"><span class="pill">${esc(j.type||"Job")}</span><span class="pill ${salaryText(j)!=="Salary not listed"?"good":""}">${esc(salaryText(j))}</span>${j.entryFlag?`<span class="pill ${j.entryFlag==="VERIFIED"?"good":"warn"}">${j.entryFlag==="VERIFIED"?"Entry-level stated":"Possible beginner fit"}</span>`:""}${j.negFlag?`<span class="pill warn">${j.negFlag==="EXPLICIT"?"Negotiable stated":"Negotiation signal"}</span>`:""}</div><div class="jobdesc">${esc(j.description)}</div><div class="small muted">Posted: ${fmtDate(j.pubDate)}</div><div class="actions"><a class="btn sm" href="${esc(j.url)}" target="_blank" rel="noopener">View Original</a><button class="btn sm" onclick="saveDiscoveryJob('${encodeURIComponent(j.id)}')">Save to Tracker</button><button class="btn sm" onclick="useFeedJobInAnalyzer('${encodeURIComponent(j.id)}')">Use in Analyzer</button><button class="btn primary sm" onclick="applyTrack('${encodeURIComponent(j.id)}')">Apply & Track ↗</button></div></article>`).join(""):`<div class="empty" style="grid-column:1/-1">No jobs match these filters.</div>`;
+ return arr.length?arr.slice(0,100).map(j=>`<article class="job card"><div class="row between"><div class="source">${esc(j.source)}</div><span class="pill ${(["24H DELAYED","24H UPDATED"].includes(j.freshness))?"warn":""}">${esc(j.freshness||"SOURCE")}</span></div><h3>${esc(j.title)}</h3><div class="company">${esc(j.company)} · ${esc(j.location||"Location not specified")}</div><div class="jobmeta"><span class="pill">${esc(j.type||"Job")}</span><span class="pill ${salaryText(j)!=="Salary not listed"?"good":""}">${esc(salaryText(j))}</span>${j.entryFlag?`<span class="pill ${j.entryFlag==="VERIFIED"?"good":"warn"}">${j.entryFlag==="VERIFIED"?"Entry-level stated":"Possible beginner fit"}</span>`:""}${j.negFlag?`<span class="pill warn">${j.negFlag==="EXPLICIT"?"Negotiable stated":"Negotiation signal"}</span>`:""}</div><div class="jobdesc">${esc(strip(j.description))}</div><div class="small muted">Posted: ${fmtDate(j.pubDate)}</div><div class="actions"><a class="btn sm" href="${esc(j.url)}" target="_blank" rel="noopener">View Original</a><button class="btn sm" onclick="saveDiscoveryJob('${encodeURIComponent(j.id)}')">Save to Tracker</button><button class="btn sm" onclick="useFeedJobInAnalyzer('${encodeURIComponent(j.id)}')">Use in Analyzer</button><button class="btn primary sm" onclick="applyTrack('${encodeURIComponent(j.id)}')">Apply & Track ↗</button></div></article>`).join(""):`<div class="empty" style="grid-column:1/-1">No jobs match these filters.</div>`;
 }
 function findLive(id){return state.liveJobs.find(j=>j.id===decodeURIComponent(id))}
 function saveJobRecord(j,status="SAVED"){
@@ -1649,7 +1672,7 @@ function saveJobRecord(j,status="SAVED"){
 }
 function saveDiscoveryJob(id){const j=findLive(id);if(!j)return;const r=saveJobRecord(j,"SAVED");r.fitScore=null;r.fitVerdict=r.fitVerdict||"NOT ANALYZED";save();toast("Saved to Application Tracker")}
 function applyTrack(id){const j=findLive(id);if(!j)return;const r=saveJobRecord(j,"APPLICATION OPENED");r.openedAt=new Date().toISOString();r.fitScore=null;r.fitVerdict=r.fitVerdict||"NOT ANALYZED";save();window.open(j.url,"_blank","noopener");toast("Application opened and added to Tracker")}
-function useFeedJobInAnalyzer(id){const j=findLive(id);if(!j)return;const ms=document.getElementById("manualSource");if(ms)ms.value="Other";const mr=document.getElementById("manualRole");if(mr)mr.value=j.title||"";const mc=document.getElementById("manualCompany");if(mc)mc.value=j.company||"";const mu=document.getElementById("manualUrl");if(mu)mu.value=j.url||"";const mj=document.getElementById("manualJD");if(mj)mj.value=j.description||"";const mja=document.getElementById("manualJobAnalyzer");if(mja)mja.scrollIntoView({behavior:"smooth",block:"start"});toast("Feed text loaded. Replace with the complete original post when possible.")}
+function useFeedJobInAnalyzer(id){const j=findLive(id);if(!j)return;const ms=document.getElementById("manualSource");if(ms)ms.value="Other";const mr=document.getElementById("manualRole");if(mr)mr.value=j.title||"";const mc=document.getElementById("manualCompany");if(mc)mc.value=j.company||"";const mu=document.getElementById("manualUrl");if(mu)mu.value=j.url||"";const mj=document.getElementById("manualJD");if(mj)mj.value=strip(j.description||"");const mja=document.getElementById("manualJobAnalyzer");if(mja)mja.scrollIntoView({behavior:"smooth",block:"start"});toast("Feed text loaded. Replace with the complete original post when possible.")}
 function openBoardSearch(board){
  const q=(document.getElementById("boardQuery")?.value||state.data.settings.jobKeywords||"remote").trim();
  const loc=document.getElementById("boardLocation")?.value||"Remote / Anywhere";
