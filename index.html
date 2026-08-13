@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Freelance Desk — Free Freelancer Workspace</title>
+<!-- v9: Brand & USP → My Profile sync -->
 <!-- Freelance Desk v8: account identity isolation + duplicate UID diagnostics -->
 <meta name="description" content="A free all-in-one workspace for freelancers, virtual assistants, remote workers, and career shifters.">
 <style>
@@ -1697,11 +1698,27 @@ function applySettings(){
 function updateThemeButton(){const b=document.getElementById("themeBtn");if(!b)return;const dark=document.body.classList.contains("dark");b.innerHTML=`${dark?"☾":"☼"} <span>${dark?"Dark":"Light"}</span>`;b.title=dark?"Switch to light mode":"Switch to dark mode"}
 function quickThemeToggle(){state.data.settings.theme=document.body.classList.contains("dark")?"light":"dark";save();applySettings();toast(state.data.settings.theme==="dark"?"Dark mode on":"Light mode on")}
 function profileNicheOptions(){return ["Executive/Admin VA","General VA","Social Media","Lead Generation","Recruitment/HR","Real Estate","E-commerce","Customer Support","Bookkeeping/Finance","Project Management","Operations","Community Management","Marketing","AI/Automation","Design/Creative","Writing","Development/Tech","Other"]}
+function profileBrandingData(){
+ ensureAcademyState();
+ const live=state.data.academy?.branding||{};
+ const snap=state.data.profile?.branding||{};
+ return {...snap,...live};
+}
+function syncBrandingToProfile(){
+ ensureAcademyState();
+ const b={...(state.data.academy?.branding||{})},p=state.data.profile||(state.data.profile={});
+ p.branding={...b,syncedAt:new Date().toISOString()};
+ if(b.targetClient)p.targetClients=b.targetClient;
+ if(b.usp)p.usp=b.usp;
+ if(b.bioHeadline)p.headline=b.bioHeadline;
+ if(b.coreService)p.services=b.coreService;
+ return b;
+}
 function profileCompleteness(){
- const p=state.data.profile||{},checks=[
-  ["Name",p.name&&p.name!=="Friend"],["Professional title",p.title],["Headline",p.headline],["Career stage",p.level],
-  ["Niche",Array.isArray(p.niches)&&p.niches.length],["Target client",p.targetClients],["USP",p.usp],["About",p.about],
-  ["Services",p.services],["Skills & tools",p.skills],["Availability",p.availability||p.weeklyHours],["Portfolio / professional link",p.portfolioUrl||p.linkedinUrl||p.onlineJobsUrl||p.upworkUrl||p.websiteUrl]
+ const p=state.data.profile||{},b=profileBrandingData(),checks=[
+  ["Name",p.name&&p.name!=="Friend"],["Professional title",p.title],["Headline",b.bioHeadline||p.headline],["Career stage",p.level],
+  ["Niche",Array.isArray(p.niches)&&p.niches.length],["Target client",b.targetClient||p.targetClients],["USP",b.usp||p.usp],["About",p.about],
+  ["Services",b.coreService||p.services],["Skills & tools",p.skills],["Availability",p.availability||p.weeklyHours],["Portfolio / professional link",p.portfolioUrl||p.linkedinUrl||p.onlineJobsUrl||p.upworkUrl||p.websiteUrl]
  ];
  const done=checks.filter(x=>!!x[1]).length,score=Math.round(done/checks.length*100);
  return {score,missing:checks.filter(x=>!x[1]).map(x=>x[0]),done,total:checks.length};
@@ -1710,22 +1727,32 @@ function profilePublicLinks(p){return [
  ["Portfolio",p.portfolioUrl],["LinkedIn",p.linkedinUrl],["OnlineJobs.ph",p.onlineJobsUrl],["Upwork",p.upworkUrl],["Website",p.websiteUrl]
  ].filter(x=>x[1]);}
 function profileSummaryText(){
- const p=state.data.profile||{},n=(p.niches||[]).join(", "),parts=[];
+ const p=state.data.profile||{},b=profileBrandingData(),n=(p.niches||[]).join(", "),parts=[];
+ const headline=b.bioHeadline||p.headline,target=b.targetClient||p.targetClients,usp=b.usp||p.usp,services=b.coreService||p.services;
  parts.push(p.name||"Freelancer");
  if(p.title)parts.push(p.title);
- if(p.headline)parts.push(p.headline);
+ if(headline)parts.push(headline);
  if(n)parts.push(`Niche: ${n}`);
- if(p.targetClients)parts.push(`Target clients: ${p.targetClients}`);
- if(p.usp)parts.push(`USP: ${p.usp}`);
- if(p.services)parts.push(`Services: ${p.services}`);
+ if(target)parts.push(`Target clients: ${target}`);
+ if(b.painPoints)parts.push(`Client pain points: ${b.painPoints}`);
+ if(usp)parts.push(`USP: ${usp}`);
+ if(b.brandStatement)parts.push(`Brand statement: ${b.brandStatement}`);
+ if(b.positioningStatement)parts.push(`Positioning: ${b.positioningStatement}`);
+ if(services)parts.push(`Core service: ${services}`);
+ if(b.servicePromise)parts.push(`Service promise: ${b.servicePromise}`);
+ if(b.proofEvidence)parts.push(`Proof / evidence: ${b.proofEvidence}`);
+ if(b.toneOfVoice)parts.push(`Tone of voice: ${b.toneOfVoice}`);
+ if(b.portfolioHeadline)parts.push(`Portfolio headline: ${b.portfolioHeadline}`);
+ if(b.cta)parts.push(`CTA: ${b.cta}`);
  if(p.skills)parts.push(`Skills & tools: ${p.skills}`);
- if(p.availability||p.weeklyHours)parts.push(`Availability: ${[p.availability,p.weeklyHours?`${p.weeklyHours} hrs/week`:""].filter(Boolean).join(" · ")}`);
+ if(p.availability||p.weeklyHours)parts.push(`Availability: ${[p.availability,p.weeklyHours?`${p.weeklyHours} hrs/week`:""] .filter(Boolean).join(" · ")}`);
  if(p.location||p.timezone)parts.push(`Location: ${[p.location,p.timezone].filter(Boolean).join(" · ")}`);
  return parts.join("\n");
 }
 function copyProfileSummary(){const t=profileSummaryText();if(navigator.clipboard?.writeText){navigator.clipboard.writeText(t).then(()=>toast("Profile summary copied"));}else{const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();document.execCommand("copy");a.remove();toast("Profile summary copied")}}
 function renderMyProfile(){
- const p=state.data.profile||{},pc=profileCompleteness(),niches=profileNicheOptions(),links=profilePublicLinks(p),docs=(state.data.profileDocs||[]).length;
+ const p=state.data.profile||{},b=profileBrandingData(),pc=profileCompleteness(),niches=profileNicheOptions(),links=profilePublicLinks(p),docs=(state.data.profileDocs||[]).length;
+ const effectiveHeadline=b.bioHeadline||p.headline||"",effectiveTarget=b.targetClient||p.targetClients||"",effectiveUsp=b.usp||p.usp||"",effectiveServices=b.coreService||p.services||"";
  return `<div class="head"><div><div class="eyebrow">YOUR PRIVATE PROFESSIONAL IDENTITY</div><h2 class="title">My Profile</h2><p class="muted">Build one master freelancer profile that your Job Fit Analyzer, Academy, portfolio work and application tools can reuse.</p></div><div class="actions"><button class="btn" onclick="copyProfileSummary()">Copy Summary</button><button class="btn primary" onclick="saveMyProfile()">Save My Profile</button></div></div>
  <div class="livebar"><strong>Private by default.</strong> This profile is part of your signed-in workspace. Saving it updates the same Firebase-synced profile already used by Freelance Desk.</div>
  <div class="profile-shell">
@@ -1734,7 +1761,7 @@ function renderMyProfile(){
     <div class="form2">
      <div><label>Name</label><input id="mpName" class="input" value="${esc(p.name||"")}" placeholder="Your professional name"></div>
      <div><label>Professional Title</label><input id="mpTitle" class="input" value="${esc(p.title||"")}" placeholder="e.g. Executive & Admin Virtual Assistant"></div>
-     <div style="grid-column:1/-1"><label>Headline</label><input id="mpHeadline" class="input" value="${esc(p.headline||"")}" placeholder="e.g. Helping busy founders protect their time through organized executive support"></div>
+     <div style="grid-column:1/-1"><label>Headline</label><input id="mpHeadline" class="input" value="${esc(effectiveHeadline)}" placeholder="e.g. Helping busy founders protect their time through organized executive support"></div>
      <div><label>Career Stage</label><select id="mpLevel" class="input">${["Just Starting","Building Experience","Actively Job Searching","Working With Clients"].map(x=>`<option ${p.level===x?"selected":""}>${x}</option>`).join("")}</select></div>
      <div><label>Work Setup</label><select id="mpWorkSetup" class="input">${["Remote","Hybrid","On-site","Flexible"].map(x=>`<option ${p.workSetup===x?"selected":""}>${x}</option>`).join("")}</select></div>
      <div><label>Location / Market Preference</label><input id="mpLocation" class="input" value="${esc(p.location||"")}" placeholder="Philippines / Worldwide"></div>
@@ -1744,25 +1771,45 @@ function renderMyProfile(){
 
    <section class="card pad profile-section"><h3>2. Niche & Target Client</h3><p class="small muted">Choose the work areas you want Freelance Desk to use when judging fit and building career outputs.</p>
     <h4>Niches — multi-select</h4><div class="row">${niches.map(x=>`<label class="pill"><input type="checkbox" class="mpNiche" value="${esc(x)}" ${(p.niches||[]).includes(x)?"checked":""}> ${esc(x)}</label>`).join("")}</div>
-    <label style="margin-top:12px">Target Client / Employer</label><textarea id="mpTarget" placeholder="Who do you want to support? e.g. founders, executives, startups, small business owners">${esc(p.targetClients||"")}</textarea>
+    <label style="margin-top:12px">Target Client / Employer</label><textarea id="mpTarget" placeholder="Who do you want to support? e.g. founders, executives, startups, small business owners">${esc(effectiveTarget)}</textarea>
    </section>
 
    <section class="card pad profile-section"><h3>3. Positioning</h3><p class="small muted">Capture your value in your own words. These fields are editable master notes, not AI-generated claims.</p>
-    <label>Unique Selling Proposition (USP)</label><textarea id="mpUsp" placeholder="What makes your support useful, reliable, or different?">${esc(p.usp||"")}</textarea>
+    <label>Unique Selling Proposition (USP)</label><textarea id="mpUsp" placeholder="What makes your support useful, reliable, or different?">${esc(effectiveUsp)}</textarea>
     <label style="margin-top:10px">About / Professional Summary</label><textarea id="mpAbout" style="min-height:150px" placeholder="Write a concise professional summary covering who you help, what you handle, and how you work.">${esc(p.about||"")}</textarea>
    </section>
 
-   <section class="card pad profile-section"><h3>4. Services, Skills & Tools</h3><p class="small muted">Use clear service language and only list skills/tools you can actually discuss or demonstrate.</p>
-    <label>Core Services</label><textarea id="mpServices" placeholder="Executive calendar management, inbox management, meeting coordination, research, SOPs...">${esc(p.services||"")}</textarea>
+
+   <section class="card pad profile-section"><div class="row between"><div><h3 style="margin:0">4. Brand & Positioning</h3><p class="small muted" style="margin:4px 0 0">Synced automatically from Academy → Brand & USP. Edit the source there; My Profile always reflects the latest saved branding.</p></div><button class="btn sm" onclick="navigate('academy-branding')">Edit Brand & USP</button></div>
+    <div class="form2" style="margin-top:14px">
+     <div class="profile-preview-block"><div class="tiny muted">TARGET CLIENT</div><div class="small strong">${esc(b.targetClient||"Not set")}</div></div>
+     <div class="profile-preview-block"><div class="tiny muted">CLIENT PAIN POINTS</div><div class="small">${esc(b.painPoints||"Not set")}</div></div>
+     <div class="profile-preview-block"><div class="tiny muted">CORE SERVICE</div><div class="small strong">${esc(b.coreService||"Not set")}</div></div>
+     <div class="profile-preview-block"><div class="tiny muted">PROOF / EVIDENCE</div><div class="small">${esc(b.proofEvidence||"Not set")}</div></div>
+    </div>
+    <div class="profile-preview-block"><div class="tiny muted">UNIQUE SELLING PROPOSITION</div><div class="small">${esc(b.usp||"Not set")}</div></div>
+    <div class="profile-preview-block"><div class="tiny muted">BRAND STATEMENT</div><div class="small">${esc(b.brandStatement||"Not set")}</div></div>
+    <div class="profile-preview-block"><div class="tiny muted">POSITIONING STATEMENT</div><div class="small">${esc(b.positioningStatement||"Not set")}</div></div>
+    <div class="form2">
+     <div class="profile-preview-block"><div class="tiny muted">SERVICE PROMISE</div><div class="small">${esc(b.servicePromise||"Not set")}</div></div>
+     <div class="profile-preview-block"><div class="tiny muted">TONE OF VOICE</div><div class="small">${esc(b.toneOfVoice||"Not set")}</div></div>
+     <div class="profile-preview-block"><div class="tiny muted">BIO HEADLINE</div><div class="small">${esc(b.bioHeadline||"Not set")}</div></div>
+     <div class="profile-preview-block"><div class="tiny muted">PORTFOLIO HEADLINE</div><div class="small">${esc(b.portfolioHeadline||"Not set")}</div></div>
+    </div>
+    <div class="profile-preview-block"><div class="tiny muted">CALL TO ACTION</div><div class="small strong">${esc(b.cta||"Not set")}</div></div>
+   </section>
+
+   <section class="card pad profile-section"><h3>5. Services, Skills & Tools</h3><p class="small muted">Use clear service language and only list skills/tools you can actually discuss or demonstrate.</p>
+    <label>Core Services</label><textarea id="mpServices" placeholder="Executive calendar management, inbox management, meeting coordination, research, SOPs...">${esc(effectiveServices)}</textarea>
     <label style="margin-top:10px">Skills & Tools</label><textarea id="mpSkills" placeholder="Google Workspace, ClickUp, Notion, Slack, communication, research...">${esc(p.skills||"")}</textarea>
     <label style="margin-top:10px">Languages</label><input id="mpLanguages" class="input" value="${esc(p.languages||"")}" placeholder="e.g. English, Filipino"></div>
    </section>
 
-   <section class="card pad profile-section"><h3>5. Availability</h3><p class="small muted">Keep this current so your application materials and job decisions use the right constraints.</p>
+   <section class="card pad profile-section"><h3>6. Availability</h3><p class="small muted">Keep this current so your application materials and job decisions use the right constraints.</p>
     <div class="form2"><div><label>Availability / Start Timing</label><input id="mpAvailability" class="input" value="${esc(p.availability||"")}" placeholder="e.g. Available immediately / September 2026"></div><div><label>Hours Per Week</label><input id="mpHours" class="input" value="${esc(p.weeklyHours||"")}" placeholder="e.g. 20"></div></div>
    </section>
 
-   <section class="card pad profile-section"><h3>6. Professional Links</h3><p class="small muted">Add only links you actually want to reuse in applications or profile drafts.</p>
+   <section class="card pad profile-section"><h3>7. Professional Links</h3><p class="small muted">Add only links you actually want to reuse in applications or profile drafts.</p>
     <div class="form2">
      <div><label>Portfolio</label><input id="mpPortfolio" class="input" value="${esc(p.portfolioUrl||"")}" placeholder="https://..."></div>
      <div><label>LinkedIn</label><input id="mpLinkedIn" class="input" value="${esc(p.linkedinUrl||"")}" placeholder="https://linkedin.com/in/..."></div>
@@ -1776,10 +1823,10 @@ function renderMyProfile(){
 
   <aside class="profile-summary">
    <section class="card pad">
-    <div class="cat">PROFILE PREVIEW</div><div class="profile-name">${esc(p.name||"Your Name")}</div><div class="strong">${esc(p.title||"Professional Title")}</div><p class="profile-headline">${esc(p.headline||"Add a headline that explains the value you bring.")}</p>
+    <div class="cat">PROFILE PREVIEW</div><div class="profile-name">${esc(p.name||"Your Name")}</div><div class="strong">${esc(p.title||"Professional Title")}</div><p class="profile-headline">${esc(effectiveHeadline||"Add a headline that explains the value you bring.")}</p>
     <div class="row" style="margin-top:12px">${(p.niches||[]).map(x=>`<span class="pill">${esc(x)}</span>`).join("")||'<span class="pill warn">Choose a niche</span>'}</div>
-    ${p.targetClients?`<div class="profile-preview-block"><div class="tiny muted">TARGET CLIENT</div><div class="small strong">${esc(p.targetClients)}</div></div>`:""}
-    ${p.usp?`<div class="profile-preview-block"><div class="tiny muted">USP</div><div class="small">${esc(p.usp)}</div></div>`:""}
+    ${effectiveTarget?`<div class="profile-preview-block"><div class="tiny muted">TARGET CLIENT</div><div class="small strong">${esc(effectiveTarget)}</div></div>`:""}
+    ${effectiveUsp?`<div class="profile-preview-block"><div class="tiny muted">USP</div><div class="small">${esc(effectiveUsp)}</div></div>`:""}
     <hr>
     <div class="profile-meter"><div class="profile-score">${pc.score}%</div><div><strong>Profile completeness</strong><div class="progress" style="margin-top:7px"><span style="width:${pc.score}%"></span></div><div class="small muted" style="margin-top:5px">${pc.done}/${pc.total} key areas complete</div></div></div>
     ${pc.missing.length?`<div style="margin-top:12px"><div class="tiny muted">NEXT TO COMPLETE</div><div class="row" style="margin-top:6px">${pc.missing.slice(0,5).map(x=>`<span class="pill warn">${esc(x)}</span>`).join("")}</div></div>`:'<div class="pill good" style="margin-top:12px">Core profile complete</div>'}
@@ -5131,8 +5178,9 @@ function saveBrandingData(){
     cta: getVal("brand_cta")
   };
 
+  syncBrandingToProfile();
   save();
-  toast("Brand & USP positioning saved!");
+  toast("Brand & USP saved and synced to My Profile!");
 }
 
 function generateAdaptiveBrandSuggestion(){
@@ -5182,7 +5230,7 @@ function renderAcademyBranding(){
     <div>
       <div class="eyebrow">Academy Phase 4 · Brand, USP & Positioning Builder</div>
       <h2 class="title">Brand Strategy & Positioning Builder</h2>
-      <p class="muted">Define your unique selling proposition, target client profile, brand promise, and portfolio headlines.</p>
+      <p class="muted">Define your unique selling proposition, target client profile, brand promise, and portfolio headlines. Saved changes automatically sync to My Profile.</p>
     </div>
     <div class="actions">
       <button class="btn sm" onclick="navigate('academy-pricing')">🏷️ Pricing & Packages</button>
