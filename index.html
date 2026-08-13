@@ -248,7 +248,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
   <div class="navlabel">PERSONAL</div>
   <button class="nav" data-page="profile"><span class="ic">◉</span>My Profile</button>
   <button class="nav" data-page="settings"><span class="ic">⚙</span>Settings</button>
-  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Private workspace data syncs to your signed-in account; shared Community rooms use separate Firestore collections.</div>
+  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Private workspace data syncs to your signed-in account; shared Community rooms use separate Firestore collections.<br><span class="tiny muted">Build v25</span></div>
 </aside>
 
 <main class="main">
@@ -275,6 +275,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
 
 <script>
 const KEY="freelance_desk_v4";
+const FD_BUILD="v25";
 const JOB_CACHE_KEY="freelance_desk_livejobs_v3";
 const DAY=24*60*60*1000;
 const today=()=>new Date().toISOString().slice(0,10);
@@ -2191,10 +2192,42 @@ const FD_THEME_PRESETS={
  "olive-clay":{name:"Olive + Clay",bg:"#F3F1E8",panel:"#FFFDF7",panel2:"#ECE9D8",ink:"#2B342A",muted:"#74783E",line:"#D5C49D",accent:"#74783E",accent2:"#CF613D"}
 };
 const FD_FONT_OPTIONS={system:'Inter / System',arial:'Arial',verdana:'Verdana',trebuchet:'Trebuchet MS',georgia:'Georgia',times:'Times New Roman',courier:'Courier New'};
-function ensureBrandAppearanceSettings(){const s=state.data.settings||(state.data.settings={});if(!s.brandTheme)s.brandTheme='fd-plum';if(!s.fontBody)s.fontBody='system';if(!s.fontHeading)s.fontHeading='system';if(!s.customPalette)s.customPalette={...FD_THEME_PRESETS['fd-plum']};return s}
+const FD_NEUTRAL_PALETTE={bg:"#f7f4ef",panel:"#fffdf9",panel2:"#f0ebe4",ink:"#252427",muted:"#736e70",line:"#ded8d1",accent:"#5a4d78",accent2:"#e4dbea"};
+function ensureBrandAppearanceSettings(){
+ const s=state.data.settings||(state.data.settings={});
+ if(!s.fontBody)s.fontBody='system';
+ if(!s.fontHeading)s.fontHeading='system';
+ // v25 migration: preserve whichever legacy preset the user had, but turn it into
+ // their editable custom palette. No preset remains active after this point.
+ if(s.brandTheme && s.brandTheme!=='custom'){
+   const legacy=FD_THEME_PRESETS[s.brandTheme]||FD_NEUTRAL_PALETTE;
+   s.customPalette={...legacy};
+ }
+ if(!s.customPalette)s.customPalette={...FD_NEUTRAL_PALETTE};
+ s.brandTheme='custom';
+ return s
+}
 function fontStack(k){return ({system:'Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',arial:'Arial,sans-serif',verdana:'Verdana,sans-serif',trebuchet:'"Trebuchet MS",sans-serif',georgia:'Georgia,serif',times:'"Times New Roman",serif',courier:'"Courier New",monospace'})[k]||'Arial,sans-serif'}
 function contrastText(hex){const h=String(hex||'#000').replace('#','');if(h.length!==6)return '#fff';const r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16),lum=(0.299*r+0.587*g+0.114*b);return lum>155?'#17202a':'#ffffff'}
-function activeBrandPalette(){const s=ensureBrandAppearanceSettings();return s.brandTheme==='custom'?{...FD_THEME_PRESETS['fd-plum'],...(s.customPalette||{})}:{...(FD_THEME_PRESETS[s.brandTheme]||FD_THEME_PRESETS['fd-plum'])}}
+function activeBrandPalette(){const s=ensureBrandAppearanceSettings();return {...FD_NEUTRAL_PALETTE,...(s.customPalette||{})}}
+function normalizeBrandHex(value,fallback="#000000"){
+ const v=String(value||"").trim();
+ const m=v.match(/^#?([0-9a-fA-F]{6})$/);
+ return m?"#"+m[1].toUpperCase():fallback;
+}
+function syncBrandColorField(key,source){
+ const picker=document.getElementById("brand_"+key),hex=document.getElementById("brandhex_"+key);
+ if(!picker||!hex)return;
+ if(source==="picker"){hex.value=picker.value.toUpperCase();}
+ else{
+   const valid=String(hex.value||"").trim().match(/^#?([0-9a-fA-F]{6})$/);
+   if(!valid){hex.style.borderColor="var(--bad)";return;}
+   hex.style.borderColor="";
+   picker.value="#"+valid[1];
+   hex.value=("#"+valid[1]).toUpperCase();
+ }
+ previewAppearance(true);
+}
 function applySettings(){
  const s=ensureBrandAppearanceSettings(),p=activeBrandPalette();
  document.body.classList.remove('dark','cool','blush');document.body.classList.toggle('compact',s.density==='compact');document.body.classList.toggle('reduced',!!s.reducedMotion);
@@ -2384,25 +2417,77 @@ function saveProfileSettings(){const p=state.data.profile;p.name=document.getEle
 function themeSwatches(p){return `<div class="theme-swatches"><span style="background:${p.bg}"></span><span style="background:${p.panel2}"></span><span style="background:${p.accent}"></span><span style="background:${p.accent2}"></span><span style="background:${p.ink}"></span></div>`}
 function applyThemePreset(key){const s=ensureBrandAppearanceSettings();s.brandTheme=key;if(key!=='custom'&&FD_THEME_PRESETS[key])s.accent=FD_THEME_PRESETS[key].accent;applySettings();render()}
 function settingsAppearance(){
- const s=ensureBrandAppearanceSettings(),p=activeBrandPalette();
- const cards=Object.entries(FD_THEME_PRESETS).map(([k,v])=>`<button type="button" class="theme-preset ${s.brandTheme===k?'active':''}" onclick="applyThemePreset('${k}')"><strong>${esc(v.name)}</strong>${themeSwatches(v)}<span class="tiny muted">Use palette</span></button>`).join('');
- const c=s.customPalette||FD_THEME_PRESETS['fd-plum'];
- return `<section class="card pad"><div class="head"><div><h3>Brand Theme & Typography</h3><p class="small muted">Your workspace can match a brand board instead of switching between generic Light and Dark modes. Each user saves their own palette and fonts.</p></div><span class="pill">LIVE PREVIEW</span></div>
- <h4>Theme Presets</h4><div class="theme-presets">${cards}<button type="button" class="theme-preset ${s.brandTheme==='custom'?'active':''}" onclick="applyThemePreset('custom')"><strong>My Brand Palette</strong>${themeSwatches(c)}<span class="tiny muted">Use your own HEX colors</span></button></div>
- <hr><div class="head"><div><h4 style="margin:0">My Brand Palette</h4><p class="small muted">Paste the HEX colors from your brand board. Selecting/changing any color switches the workspace to your custom palette.</p></div><button class="btn sm" onclick="copyBrandPalette()">Copy HEX Palette</button></div>
- <div class="form3">${[['bg','Background'],['panel','Main Surface'],['panel2','Soft Surface'],['ink','Main Text'],['muted','Muted Text'],['line','Borders'],['accent','Primary Accent'],['accent2','Secondary Accent']].map(([k,l])=>`<div><label>${l}</label><input id="brand_${k}" type="color" class="input" value="${esc(c[k]||FD_THEME_PRESETS['fd-plum'][k])}" onchange="previewAppearance(true)"></div>`).join('')}</div>
- <hr><div class="form2"><div><label>Heading Font</label><select id="sfontHeading" class="input" onchange="previewAppearance()">${Object.entries(FD_FONT_OPTIONS).map(([k,l])=>`<option value="${k}" ${s.fontHeading===k?'selected':''}>${esc(l)}</option>`).join('')}</select></div><div><label>Body Font</label><select id="sfontBody" class="input" onchange="previewAppearance()">${Object.entries(FD_FONT_OPTIONS).map(([k,l])=>`<option value="${k}" ${s.fontBody===k?'selected':''}>${esc(l)}</option>`).join('')}</select></div></div>
- <div class="font-sample" style="margin-top:10px"><div style="font-family:var(--font-heading);font-size:24px;font-weight:900">Your brand, inside your workspace.</div><div style="font-family:var(--font-body);margin-top:5px;color:var(--muted)">This sample updates with your heading font, body font and palette.</div></div>
- <hr><div class="setting-row"><div><h4>Text Size</h4><p>Interface scaling.</p></div><select id="sfont" class="input" onchange="previewAppearance()"><option value=".9" ${Number(s.fontScale)===.9?'selected':''}>Small</option><option value="1" ${Number(s.fontScale)===1?'selected':''}>Default</option><option value="1.1" ${Number(s.fontScale)===1.1?'selected':''}>Large</option><option value="1.2" ${Number(s.fontScale)===1.2?'selected':''}>Extra Large</option></select></div>
- <div class="setting-row"><div><h4>Layout Density</h4><p>Comfortable or compact.</p></div><select id="sdensity" class="input" onchange="previewAppearance()"><option value="comfortable" ${s.density==='comfortable'?'selected':''}>Comfortable</option><option value="compact" ${s.density==='compact'?'selected':''}>Compact</option></select></div>
- <div class="setting-row"><div><h4>Reduced Motion</h4><p>Disable nonessential transitions.</p></div><label><input id="sreduce" type="checkbox" ${s.reducedMotion?'checked':''} onchange="previewAppearance()"> Reduce motion</label></div>
- <div class="setting-row"><div><h4>Start Page</h4><p>Page shown when the workspace opens.</p></div><select id="sstart" class="input">${Object.entries(pages).map(([k,v])=>`<option value="${k}" ${s.startPage===k?'selected':''}>${esc(v)}</option>`).join('')}</select></div>
- <div class="actions"><button class="btn primary" onclick="saveAppearance()">Save Brand Theme</button><button class="btn" onclick="resetAppearance()">Reset to Freelance Desk</button></div></section>`
+ const s=ensureBrandAppearanceSettings(),c=activeBrandPalette();
+ const roles=[
+  ['bg','Background','Main page background'],
+  ['panel','Main Surface','Cards, panels and primary surfaces'],
+  ['panel2','Soft Surface','Secondary panels, pills and soft highlights'],
+  ['ink','Main Text','Headings and primary text'],
+  ['muted','Muted Text','Descriptions and secondary text'],
+  ['line','Borders','Dividers, field outlines and borders'],
+  ['accent','Primary Accent','Buttons, active states and primary brand color'],
+  ['accent2','Secondary Accent','Soft accent areas and supporting brand color']
+ ];
+ const fields=roles.map(([k,l,h])=>`<div class="card" style="padding:14px;box-shadow:none">
+   <label>${esc(l)}</label>
+   <div style="display:grid;grid-template-columns:58px minmax(0,1fr);gap:9px;align-items:center">
+    <input id="brand_${k}" type="color" value="${esc(c[k]||FD_NEUTRAL_PALETTE[k])}" style="width:58px;height:44px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--panel)" oninput="syncBrandColorField('${k}','picker')">
+    <input id="brandhex_${k}" class="input" value="${esc((c[k]||FD_NEUTRAL_PALETTE[k]).toUpperCase())}" maxlength="7" placeholder="#000000" oninput="syncBrandColorField('${k}','hex')">
+   </div>
+   <div class="tiny muted" style="margin-top:6px">${esc(h)}</div>
+  </div>`).join('');
+ return `<section class="card pad">
+  <div class="head"><div><h3>Brand Theme & Typography</h3><p class="small muted">No preset themes. Build the workspace from your own brand board, color palette and font choices. Each user saves a separate workspace look.</p></div><span class="pill">LIVE PREVIEW</span></div>
+
+  <div class="profile-preview-block">
+   <div class="eyebrow">YOUR PALETTE</div>
+   <div style="display:grid;grid-template-columns:repeat(8,1fr);height:42px;border-radius:12px;overflow:hidden;border:1px solid var(--line);margin-top:8px">
+    ${['bg','panel','panel2','ink','muted','line','accent','accent2'].map(k=>`<span style="background:${esc(c[k])}" title="${k}: ${esc(c[k])}"></span>`).join('')}
+   </div>
+   <p class="tiny muted" style="margin:8px 0 0">Use the colors from your own brand board. If your palette has fewer colors, you may reuse the same HEX value for multiple roles.</p>
+  </div>
+
+  <div class="head" style="margin-top:18px"><div><h4 style="margin:0">Choose Your Workspace Colors</h4><p class="small muted">Click the color square or type/paste an exact 6-digit HEX code. Changes preview immediately.</p></div><button class="btn sm" onclick="copyBrandPalette()">Copy My Palette</button></div>
+  <div class="form2">${fields}</div>
+
+  <hr>
+  <div class="head"><div><h4 style="margin:0">Typography</h4><p class="small muted">Choose simple, readable heading and body fonts that fit your brand.</p></div></div>
+  <div class="form2">
+   <div><label>Heading Font</label><select id="sfontHeading" class="input" onchange="previewAppearance()">${Object.entries(FD_FONT_OPTIONS).map(([k,l])=>`<option value="${k}" ${s.fontHeading===k?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+   <div><label>Body Font</label><select id="sfontBody" class="input" onchange="previewAppearance()">${Object.entries(FD_FONT_OPTIONS).map(([k,l])=>`<option value="${k}" ${s.fontBody===k?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+  </div>
+  <div class="font-sample" style="margin-top:10px"><div style="font-family:var(--font-heading);font-size:24px;font-weight:900">Your brand, inside your workspace.</div><div style="font-family:var(--font-body);margin-top:5px;color:var(--muted)">This sample updates with your heading font, body font and palette.</div></div>
+
+  <hr>
+  <div class="setting-row"><div><h4>Text Size</h4><p>Interface scaling.</p></div><select id="sfont" class="input" onchange="previewAppearance()"><option value=".9" ${Number(s.fontScale)===.9?'selected':''}>Small</option><option value="1" ${Number(s.fontScale)===1?'selected':''}>Default</option><option value="1.1" ${Number(s.fontScale)===1.1?'selected':''}>Large</option><option value="1.2" ${Number(s.fontScale)===1.2?'selected':''}>Extra Large</option></select></div>
+  <div class="setting-row"><div><h4>Layout Density</h4><p>Comfortable or compact.</p></div><select id="sdensity" class="input" onchange="previewAppearance()"><option value="comfortable" ${s.density==='comfortable'?'selected':''}>Comfortable</option><option value="compact" ${s.density==='compact'?'selected':''}>Compact</option></select></div>
+  <div class="setting-row"><div><h4>Reduced Motion</h4><p>Disable nonessential transitions.</p></div><label><input id="sreduce" type="checkbox" ${s.reducedMotion?'checked':''} onchange="previewAppearance()"> Reduce motion</label></div>
+  <div class="setting-row"><div><h4>Start Page</h4><p>Page shown when the workspace opens.</p></div><select id="sstart" class="input">${Object.entries(pages).map(([k,v])=>`<option value="${k}" ${s.startPage===k?'selected':''}>${esc(v)}</option>`).join('')}</select></div>
+  <div class="actions"><button class="btn primary" onclick="saveAppearance()">Save My Brand Theme</button><button class="btn" onclick="resetAppearance()">Reset to Neutral Workspace</button></div>
+ </section>`
 }
-function previewAppearance(forceCustom=false){const s=ensureBrandAppearanceSettings();if(forceCustom)s.brandTheme='custom';const get=id=>document.getElementById(id);const colorKeys=['bg','panel','panel2','ink','muted','line','accent','accent2'];colorKeys.forEach(k=>{const e=get('brand_'+k);if(e)s.customPalette[k]=e.value});if(get('sfontHeading'))s.fontHeading=get('sfontHeading').value;if(get('sfontBody'))s.fontBody=get('sfontBody').value;if(get('sfont'))s.fontScale=+get('sfont').value;if(get('sdensity'))s.density=get('sdensity').value;if(get('sreduce'))s.reducedMotion=get('sreduce').checked;applySettings()}
-function saveAppearance(){previewAppearance();const s=ensureBrandAppearanceSettings(),st=document.getElementById('sstart');if(st)s.startPage=st.value;save();toast('Brand theme & fonts saved')}
-function resetAppearance(){const s=ensureBrandAppearanceSettings();s.brandTheme='fd-plum';s.customPalette={...FD_THEME_PRESETS['fd-plum']};s.fontBody='system';s.fontHeading='system';s.fontScale=1;s.density='comfortable';s.reducedMotion=false;applySettings();save();render();toast('Appearance reset')}
-function copyBrandPalette(){const p=activeBrandPalette(),txt=['Background '+p.bg,'Surface '+p.panel,'Soft Surface '+p.panel2,'Text '+p.ink,'Muted '+p.muted,'Border '+p.line,'Primary '+p.accent,'Secondary '+p.accent2].join('\n');navigator.clipboard?.writeText(txt);toast('Palette copied')}
+function previewAppearance(forceCustom=false){
+ const s=ensureBrandAppearanceSettings();s.brandTheme='custom';
+ const get=id=>document.getElementById(id);
+ const colorKeys=['bg','panel','panel2','ink','muted','line','accent','accent2'];
+ colorKeys.forEach(k=>{
+   const picker=get('brand_'+k),hex=get('brandhex_'+k);
+   if(hex){
+     const valid=String(hex.value||"").trim().match(/^#?([0-9a-fA-F]{6})$/);
+     if(valid)s.customPalette[k]="#"+valid[1].toUpperCase();
+     else if(picker)s.customPalette[k]=picker.value;
+   }else if(picker)s.customPalette[k]=picker.value;
+ });
+ if(get('sfontHeading'))s.fontHeading=get('sfontHeading').value;
+ if(get('sfontBody'))s.fontBody=get('sfontBody').value;
+ if(get('sfont'))s.fontScale=+get('sfont').value;
+ if(get('sdensity'))s.density=get('sdensity').value;
+ if(get('sreduce'))s.reducedMotion=get('sreduce').checked;
+ applySettings()
+}
+function saveAppearance(){previewAppearance();const s=ensureBrandAppearanceSettings(),st=document.getElementById('sstart');if(st)s.startPage=st.value;save();toast('Your brand palette & fonts are saved')}
+function resetAppearance(){const s=ensureBrandAppearanceSettings();s.brandTheme='custom';s.customPalette={...FD_NEUTRAL_PALETTE};s.fontBody='system';s.fontHeading='system';s.fontScale=1;s.density='comfortable';s.reducedMotion=false;applySettings();save();render();toast('Reset to neutral workspace')}
+function copyBrandPalette(){const p=activeBrandPalette(),txt=['Background '+p.bg,'Main Surface '+p.panel,'Soft Surface '+p.panel2,'Main Text '+p.ink,'Muted Text '+p.muted,'Borders '+p.line,'Primary Accent '+p.accent,'Secondary Accent '+p.accent2].join('\n');navigator.clipboard?.writeText(txt);toast('Your palette copied')}
 function settingsJobPrefs(){const s=state.data.settings;return `<section class="card pad"><h3>Job Preferences</h3><div class="form2"><div><label>Default keyword</label><input id="sjq" class="input" value="${esc(s.jobKeywords||"")}"></div><div><label>Location keyword</label><input id="sjloc" class="input" value="${esc(s.jobLocation||"")}"></div><div><label>Preferred currency</label><input id="scur" class="input" value="${esc(s.currency||"USD")}"></div><div><label>Blocked keywords</label><input id="sblock" class="input" value="${esc(s.blockedKeywords||"")}"></div></div><div class="row" style="margin-top:12px"><label class="pill"><input id="sremote" type="checkbox" ${s.remoteOnly?"checked":""}> Remote preferred</label><label class="pill"><input id="sbeginner" type="checkbox" ${s.beginnerPreferred?"checked":""}> Beginner-friendly</label><label class="pill"><input id="ssalary" type="checkbox" ${s.salaryPreferred?"checked":""}> Salary disclosed</label></div><button class="btn primary" style="margin-top:12px" onclick="saveJobPrefs()">Save Preferences</button></section>`}
 function saveJobPrefs(){const s=state.data.settings;s.jobKeywords=document.getElementById("sjq").value;s.jobLocation=document.getElementById("sjloc").value;s.currency=document.getElementById("scur").value;s.blockedKeywords=document.getElementById("sblock").value;s.remoteOnly=document.getElementById("sremote").checked;s.beginnerPreferred=document.getElementById("sbeginner").checked;s.salaryPreferred=document.getElementById("ssalary").checked;save();toast("Job preferences saved")}
 function settingsAccessRoles(){
@@ -6950,18 +7035,87 @@ function renderErrorCard(err){
  const msg=err?.message||String(err||"Unknown render error");
  c.innerHTML=`<div class="card pad" style="max-width:760px;margin:28px auto;border:2px solid var(--warn)"><div class="eyebrow">WORKSPACE RECOVERY</div><h2 style="margin:8px 0">This page could not finish loading.</h2><p class="muted">Your account data is still intact. Freelance Desk caught the page error instead of leaving you with a blank screen.</p><div class="notice small"><strong>Technical detail:</strong> ${esc(msg)}</div><div class="actions"><button class="btn primary" onclick="navigate('start-here')">Reload Start Here</button><button class="btn" onclick="navigate('home')">Go Home</button><button class="btn" onclick="location.reload()">Refresh App</button></div></div>`;
 }
+const PAGE_RENDERER_NAMES={
+ "start-here":"renderStartHere",
+ "announcements":"renderAnnouncements",
+ "home":"renderHome",
+ "desk":"renderDesk",
+ "community":"renderCommunity",
+ "jobs":"renderJobs",
+ "tracker":"renderTracker",
+ "portfolio":"renderPortfolio",
+ "resume-studio":"renderResumeStudio",
+ "portfolio-builder":"renderPortfolioBuilder",
+ "profile":"renderMyProfile",
+ "tools":"renderTools",
+ "automation-studio":"renderAutomationStudio",
+ "mockup-studio":"renderMockupStudio",
+ "typing-lab":"renderTypingLab",
+ "template-library":"renderTemplateLibrary",
+ "open-source-lab":"renderOpenSourceLab",
+ "workflows":"renderWorkflows",
+ "guides":"renderGuides",
+ "learn":"renderLearn",
+ "ai":"renderAI",
+ "settings":"renderSettings",
+ "academy-home":"renderAcademyHome",
+ "academy-stage":"renderAcademyStage",
+ "academy-tracks":"renderAcademyTracks",
+ "academy-lab":"renderAcademyLab",
+ "academy-interview":"renderAcademyInterview",
+ "academy-client-ready":"renderAcademyClientReady",
+ "academy-pricing":"renderAcademyPricing",
+ "academy-branding":"renderAcademyBranding",
+ "academy-content":"renderAcademyContent",
+ "academy-acquisition":"renderAcademyAcquisition"
+};
+
+function getPageRenderer(page){
+ const name=PAGE_RENDERER_NAMES[page];
+ if(!name)return null;
+ const fn=window[name];
+ return typeof fn==="function"?fn:null;
+}
+
+function renderFeatureUnavailable(page,rendererName){
+ return `<div class="card pad" style="max-width:780px;margin:28px auto">
+  <div class="eyebrow">FEATURE RECOVERY · ${esc(FD_BUILD)}</div>
+  <h2 style="margin:8px 0">This feature did not load, but the rest of Freelance Desk is still available.</h2>
+  <p class="muted">The page router isolated the missing feature instead of crashing Start Here, Home, or the whole workspace.</p>
+  <div class="notice small"><strong>Page:</strong> ${esc(page||"unknown")}<br><strong>Renderer:</strong> ${esc(rendererName||"unknown")}</div>
+  <div class="actions"><button class="btn primary" onclick="navigate('start-here')">Go to Start Here</button><button class="btn" onclick="navigate('home')">Go Home</button><button class="btn" onclick="location.reload()">Refresh App</button></div>
+ </div>`;
+}
+
 function render(){
  try{
   normalizeWorkspaceForRender();
-  const r={"start-here":renderStartHere,announcements:renderAnnouncements,home:renderHome,desk:renderDesk,community:renderCommunity,jobs:renderJobs,tracker:renderTracker,portfolio:renderPortfolio,"resume-studio":renderResumeStudio,"portfolio-builder":renderPortfolioBuilder,profile:renderMyProfile,tools:renderTools,"automation-studio":renderAutomationStudio,"mockup-studio":renderMockupStudio,"typing-lab":renderTypingLab,"template-library":renderTemplateLibrary,"open-source-lab":renderOpenSourceLab,workflows:renderWorkflows,guides:renderGuides,learn:renderLearn,ai:renderAI,settings:renderSettings,"academy-home":renderAcademyHome,"academy-stage":renderAcademyStage,"academy-tracks":renderAcademyTracks,"academy-lab":renderAcademyLab,"academy-interview":renderAcademyInterview,"academy-client-ready":renderAcademyClientReady,"academy-pricing":renderAcademyPricing,"academy-branding":renderAcademyBranding,"academy-content":renderAcademyContent,"academy-acquisition":renderAcademyAcquisition}[state.page];
   const content=document.getElementById("content");
   if(!content)throw new Error("Main content container is missing.");
-  content.innerHTML=r ? r() : '<div class="card pad"><h3>Page not found</h3><p class="small muted">This shortcut is no longer valid.</p><button class="btn" onclick="goBack()">← Go Back</button></div>';
+
+  const rendererName=PAGE_RENDERER_NAMES[state.page];
+  const renderer=getPageRenderer(state.page);
+
+  if(rendererName && !renderer){
+   console.error(`Freelance Desk ${FD_BUILD}: missing renderer`,rendererName,"for page",state.page);
+   content.innerHTML=renderFeatureUnavailable(state.page,rendererName);
+   syncNavChrome();
+   return;
+  }
+
+  content.innerHTML=renderer
+   ? renderer()
+   : `<div class="card pad"><div class="eyebrow">${esc(FD_BUILD)}</div><h3>Page not found</h3><p class="small muted">This shortcut is no longer valid.</p><button class="btn" onclick="goBack()">← Go Back</button></div>`;
+
   syncNavChrome();
   if(state.page==="typing-lab")setTimeout(()=>resetTyping(true),20);
   if(state.page==="template-library")setTimeout(()=>filterWebTemplates(true),20);
   if(state.page==="jobs"&&!state.liveJobs.length)setTimeout(()=>loadLiveJobs(false),60);
- }catch(err){console.error("Freelance Desk render error:",err);renderErrorCard(err);try{syncNavChrome()}catch(e){}}
+ }catch(err){
+  console.error(`Freelance Desk ${FD_BUILD} render error:`,err);
+  renderErrorCard(err);
+  try{syncNavChrome()}catch(e){}
+ }
 }
 document.getElementById("menu").onclick=()=>document.getElementById("sidebar").classList.toggle("open");
 document.getElementById("search").onclick=openSearch;
