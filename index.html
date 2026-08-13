@@ -1885,13 +1885,28 @@ function renderAccessUsers(){
  const rows=Array.isArray(authState.accessUsers)?authState.accessUsers:[];
  if(!rows.length)return `<div class="empty">No user records loaded yet.</div>`;
  const me=authState.user?.uid, myRole=currentPlatformRole();
- return `<div class="table"><table style="min-width:920px"><thead><tr><th>User</th><th>Status</th><th>Platform Role</th><th>Last Login</th><th>Actions</th></tr></thead><tbody>${rows.map(u=>{
+ const pendingRows=rows.filter(u=>(u.accessStatus||"pending")==="pending");
+ const managedRows=rows.filter(u=>(u.accessStatus||"pending")!=="pending");
+
+ const rowHtml=u=>{
    const uidValue=u.uid||u.id||"", targetRole=u.platformRole||"member", targetStatus=u.accessStatus||"pending", isSelf=uidValue===me;
    const protectedForAdmin=myRole==="admin" && ["owner","admin"].includes(targetRole);
    const manageable=!isSelf && !protectedForAdmin;
    const roleOptions=(myRole==="owner"?["member","moderator","admin","owner"]:["member","moderator"]).map(r=>`<option value="${r}" ${targetRole===r?'selected':''}>${esc(platformRoleLabel(r))}</option>`).join("");
-   return `<tr><td><strong>${esc(u.displayName||u.email||"User")}</strong><div class="tiny muted">${esc(u.email||"")}</div><div class="tiny muted" style="font-family:monospace">${esc(uidValue)}</div>${isSelf?'<span class="pill good" style="margin-top:5px">YOU</span>':''}</td><td><span class="pill ${targetStatus==='approved'?'good':targetStatus==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(targetStatus))}</span></td><td>${manageable?`<select class="input" style="min-width:160px" onchange="setPlatformUserRole('${esc(uidValue)}',this.value)">${roleOptions}</select>`:`<span class="pill">${esc(platformRoleLabel(targetRole))}</span>`}</td><td>${esc(roomDate(u.lastLogin)||'—')}</td><td>${manageable?`<div class="actions"><button class="btn sm good" onclick="setPlatformUserAccess('${esc(uidValue)}','approved')">Approve</button><button class="btn sm" onclick="setPlatformUserAccess('${esc(uidValue)}','pending')">Pending</button><button class="btn sm bad" onclick="setPlatformUserAccess('${esc(uidValue)}','blocked')">Block</button></div>`:'<span class="tiny muted">Protected / current account</span>'}</td></tr>`;
-  }).join("")}</tbody></table></div>`;
+   let actions='<span class="tiny muted">Protected / current account</span>';
+   if(manageable){
+     const approveBtn=targetStatus==="approved"?`<button class="btn sm good" disabled title="This user is already approved">✓ Approved</button>`:`<button class="btn sm good" onclick="setPlatformUserAccess('${esc(uidValue)}','approved')">Approve</button>`;
+     const pendingBtn=targetStatus==="pending"?`<button class="btn sm" disabled title="This request is already pending">Pending</button>`:`<button class="btn sm" onclick="setPlatformUserAccess('${esc(uidValue)}','pending')">Set Pending</button>`;
+     const blockBtn=targetStatus==="blocked"?`<button class="btn sm bad" disabled title="This user is already blocked">Blocked</button>`:`<button class="btn sm bad" onclick="setPlatformUserAccess('${esc(uidValue)}','blocked')">Block</button>`;
+     actions=`<div class="actions">${approveBtn}${pendingBtn}${blockBtn}</div>`;
+   }
+   return `<tr><td><strong>${esc(u.displayName||u.email||"User")}</strong><div class="tiny muted">${esc(u.email||"")}</div><div class="tiny muted" style="font-family:monospace">${esc(uidValue)}</div>${isSelf?'<span class="pill good" style="margin-top:5px">YOU</span>':''}</td><td><span class="pill ${targetStatus==='approved'?'good':targetStatus==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(targetStatus))}</span></td><td>${manageable?`<select class="input" style="min-width:160px" onchange="setPlatformUserRole('${esc(uidValue)}',this.value)">${roleOptions}</select>`:`<span class="pill">${esc(platformRoleLabel(targetRole))}</span>`}</td><td>${esc(roomDate(u.lastLogin)||'—')}</td><td>${actions}</td></tr>`;
+ };
+
+ const tableFor=list=>`<div class="table"><table style="min-width:920px"><thead><tr><th>User</th><th>Status</th><th>Platform Role</th><th>Last Login</th><th>Actions</th></tr></thead><tbody>${list.map(rowHtml).join("")}</tbody></table></div>`;
+ const pendingSection=`<div style="margin-bottom:18px"><div class="head" style="margin-bottom:8px"><div><h4 style="margin:0">Pending Access Requests</h4><p class="small muted" style="margin:4px 0 0">New access requests stay here until you approve or block them.</p></div><span class="pill ${pendingRows.length?'warn':'good'}">${pendingRows.length} Pending</span></div>${pendingRows.length?tableFor(pendingRows):'<div class="empty" style="padding:18px">No pending access requests. ✓</div>'}</div>`;
+ const usersSection=`<div><div class="head" style="margin-bottom:8px"><div><h4 style="margin:0">Approved & Blocked Users</h4><p class="small muted" style="margin:4px 0 0">Approved users no longer remain in the pending queue.</p></div></div>${managedRows.length?tableFor(managedRows):'<div class="empty" style="padding:18px">No approved or blocked users yet.</div>'}</div>`;
+ return pendingSection+usersSection;
 }
 async function loadAccessUsers(force=false){
  if(!db||!auth?.currentUser||!canManagePlatformUsers())return;
