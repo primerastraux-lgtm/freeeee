@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Freelance Desk — Free Freelancer Workspace</title>
+<!-- Freelance Desk v8: account identity isolation + duplicate UID diagnostics -->
 <meta name="description" content="A free all-in-one workspace for freelancers, virtual assistants, remote workers, and career shifters.">
 <style>
 :root{
@@ -204,6 +205,42 @@ const state={
  }
 };
 
+// v8: isolate private workspace cache by Firebase UID so two accounts on one browser never share profile/task data.
+const DEFAULT_WORKSPACE_DATA=JSON.parse(JSON.stringify(state.data));
+let activeWorkspaceUid=null;
+function cloneDefaultWorkspace(){return JSON.parse(JSON.stringify(DEFAULT_WORKSPACE_DATA))}
+function workspaceStorageKeyForUid(uidValue){return uidValue?`${KEY}__${uidValue}`:`${KEY}__guest`}
+function loadWorkspaceCacheForUser(user){
+ state.data=cloneDefaultWorkspace();
+ if(!user?.uid)return;
+ try{
+  const raw=localStorage.getItem(workspaceStorageKeyForUid(user.uid));
+  if(!raw)return;
+  const d=JSON.parse(raw);
+  if(!d||typeof d!=="object")return;
+  state.data={...state.data,...d,
+   profile:{...state.data.profile,...(d.profile||{})},
+   settings:{...state.data.settings,...(d.settings||{})},
+   academy:{...state.data.academy,...(d.academy||{})},
+   templateDrafts:{...state.data.templateDrafts,...(d.templateDrafts||{})}
+  };
+ }catch(err){console.warn("User workspace cache load skipped:",err?.message||err)}
+}
+function authUserEmail(user){
+ if(!user)return "";
+ return user.email || (Array.isArray(user.providerData)?(user.providerData.find(p=>p?.email)?.email||""):"") || "";
+}
+function authUserName(user){
+ if(!user)return "Member";
+ const providerName=Array.isArray(user.providerData)?(user.providerData.find(p=>p?.displayName)?.displayName||""):"";
+ const email=authUserEmail(user);
+ return user.displayName || providerName || (email?email.split("@")[0]:"Member");
+}
+function authProviderIds(user){
+ const ids=Array.isArray(user?.providerData)?user.providerData.map(p=>p?.providerId).filter(Boolean):[];
+ return [...new Set(ids)];
+}
+
 
 
 // --- Shared Community realtime runtime state (not private workspace data) ---
@@ -269,8 +306,8 @@ function startCommunityRealtime(){
     });
 }
 function communityUserName(){
-  const u = authState?.user;
-  return state.data.profile?.name || u?.displayName || (u?.email ? u.email.split("@")[0] : "Member");
+  const u=authState?.user;
+  return authState?.userRecord?.displayName || authUserName(u);
 }
 function communityUserPhoto(){ return authState?.user?.photoURL || ""; }
 function roomById(id){ return communityState.rooms.find(r=>r.id===id); }
@@ -465,7 +502,9 @@ function applyCloudWorkspace(workspace){
 }
 
 function save(){
-  localStorage.setItem(KEY, JSON.stringify(state.data));
+  if(activeWorkspaceUid){
+    localStorage.setItem(workspaceStorageKeyForUid(activeWorkspaceUid),JSON.stringify(state.data));
+  }
 
   if (typeof auth !== "undefined" && auth && auth.currentUser && db) {
     db.collection("users").doc(auth.currentUser.uid).set({
@@ -1858,7 +1897,7 @@ async function claimPlatformOwner(){
    if(data?.ownerUid && data.ownerUid!==auth.currentUser.uid)throw new Error("An Owner has already been configured for this workspace.");
    throw new Error("Owner setup was not completed. Deploy the included Firestore security rules, then try again.");
   }
-  authState.platformRole="owner";authState.ownerSetupStatus="configured";authState.ownerSetupRecord={ownerUid:auth.currentUser.uid,ownerEmail:auth.currentUser.email||""};
+  authState.platformRole="owner";authState.ownerSetupStatus="configured";authState.ownerSetupRecord={ownerUid:auth.currentUser.uid,ownerEmail:authUserEmail(auth.currentUser)||""};
   authState.accessUsersLoaded=false;
   toast("Owner / Super Admin activated");
   await loadAccessUsers(true);
@@ -1887,6 +1926,10 @@ function renderAccessUsers(){
  const me=authState.user?.uid, myRole=currentPlatformRole();
  const pendingRows=rows.filter(u=>(u.accessStatus||"pending")==="pending");
  const managedRows=rows.filter(u=>(u.accessStatus||"pending")!=="pending");
+ const emailGroups={};
+ rows.forEach(u=>{const e=String(u.email||"").trim().toLowerCase();if(e)(emailGroups[e]||(emailGroups[e]=[])).push(u)});
+ const duplicates=Object.entries(emailGroups).filter(([,items])=>items.length>1);
+ const duplicateNotice=duplicates.length?`<div class="auth-alert error" style="margin-bottom:14px"><span>⚠️</span><div><strong>Duplicate Firebase identities detected for the same email.</strong><br>${duplicates.map(([email,items])=>`${esc(email)} → ${items.length} UIDs`).join('<br>')}<br><span class="tiny">Approval is stored by UID. Keep one Firebase identity per email and remove/link duplicates in Firebase Authentication.</span></div></div>`:"";
 
  const rowHtml=u=>{
    const uidValue=u.uid||u.id||"", targetRole=u.platformRole||"member", targetStatus=u.accessStatus||"pending", isSelf=uidValue===me;
@@ -1900,13 +1943,13 @@ function renderAccessUsers(){
      const blockBtn=targetStatus==="blocked"?`<button class="btn sm bad" disabled title="This user is already blocked">Blocked</button>`:`<button class="btn sm bad" onclick="setPlatformUserAccess('${esc(uidValue)}','blocked')">Block</button>`;
      actions=`<div class="actions">${approveBtn}${pendingBtn}${blockBtn}</div>`;
    }
-   return `<tr><td><strong>${esc(u.displayName||u.email||"User")}</strong><div class="tiny muted">${esc(u.email||"")}</div><div class="tiny muted" style="font-family:monospace">${esc(uidValue)}</div>${isSelf?'<span class="pill good" style="margin-top:5px">YOU</span>':''}</td><td><span class="pill ${targetStatus==='approved'?'good':targetStatus==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(targetStatus))}</span></td><td>${manageable?`<select class="input" style="min-width:160px" onchange="setPlatformUserRole('${esc(uidValue)}',this.value)">${roleOptions}</select>`:`<span class="pill">${esc(platformRoleLabel(targetRole))}</span>`}</td><td>${esc(roomDate(u.lastLogin)||'—')}</td><td>${actions}</td></tr>`;
+   return `<tr><td><strong>${esc(u.displayName||u.email||"User")}</strong><div class="tiny muted">${esc(u.email||"")}</div><div class="tiny muted">${esc((u.providerIds||[]).join(', ')||'provider not recorded')}</div><div class="tiny muted" style="font-family:monospace">${esc(uidValue)}</div>${isSelf?'<span class="pill good" style="margin-top:5px">YOU</span>':''}</td><td><span class="pill ${targetStatus==='approved'?'good':targetStatus==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(targetStatus))}</span></td><td>${manageable?`<select class="input" style="min-width:160px" onchange="setPlatformUserRole('${esc(uidValue)}',this.value)">${roleOptions}</select>`:`<span class="pill">${esc(platformRoleLabel(targetRole))}</span>`}</td><td>${esc(roomDate(u.lastLogin)||'—')}</td><td>${actions}</td></tr>`;
  };
 
  const tableFor=list=>`<div class="table"><table style="min-width:920px"><thead><tr><th>User</th><th>Status</th><th>Platform Role</th><th>Last Login</th><th>Actions</th></tr></thead><tbody>${list.map(rowHtml).join("")}</tbody></table></div>`;
  const pendingSection=`<div style="margin-bottom:18px"><div class="head" style="margin-bottom:8px"><div><h4 style="margin:0">Pending Access Requests</h4><p class="small muted" style="margin:4px 0 0">New access requests stay here until you approve or block them.</p></div><span class="pill ${pendingRows.length?'warn':'good'}">${pendingRows.length} Pending</span></div>${pendingRows.length?tableFor(pendingRows):'<div class="empty" style="padding:18px">No pending access requests. ✓</div>'}</div>`;
  const usersSection=`<div><div class="head" style="margin-bottom:8px"><div><h4 style="margin:0">Approved & Blocked Users</h4><p class="small muted" style="margin:4px 0 0">Approved users no longer remain in the pending queue.</p></div></div>${managedRows.length?tableFor(managedRows):'<div class="empty" style="padding:18px">No approved or blocked users yet.</div>'}</div>`;
- return pendingSection+usersSection;
+ return duplicateNotice+pendingSection+usersSection;
 }
 async function loadAccessUsers(force=false){
  if(!db||!auth?.currentUser||!canManagePlatformUsers())return;
@@ -1954,9 +1997,9 @@ function settingsData(){
   <h3>Firebase Account & Cloud Firestore</h3>
   <p class="small muted">Connected to Firebase project <strong>freelance-desk-ee209</strong>.</p>
   ${u ? `
-   <div class="setting-row"><div><h4>Logged in as</h4><p>${esc(u.email||"")}</p></div><button type="button" class="btn bad sm btn-signout">Sign Out</button></div>
+   <div class="setting-row"><div><h4>Logged in as</h4><p>${esc(authUserEmail(u)||"")}</p></div><button type="button" class="btn bad sm btn-signout">Sign Out</button></div>
    <div class="setting-row"><div><h4>User ID (UID)</h4><p class="tiny muted" style="font-family:monospace">${esc(u.uid||"")}</p></div></div>
-   <div class="setting-row"><div><h4>Auth Provider</h4><p>${esc(u.providerData && u.providerData[0] ? u.providerData[0].providerId : "password")}</p></div></div>
+   <div class="setting-row"><div><h4>Auth Provider</h4><p>${esc(authProviderIds(u).join(", ")||"password")}</p></div></div>
    <div class="setting-row"><div><h4>Access Status</h4><p>${esc(accessStatusLabel(authState.accessStatus))}</p></div><span class="pill ${authState.accessStatus==='approved'?'good':authState.accessStatus==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(authState.accessStatus))}</span></div>
    <div class="setting-row"><div><h4>Platform Role</h4><p>Separate from room-level permissions.</p></div><span class="pill">${esc(platformRoleLabel(currentPlatformRole()))}</span></div>
   ` : '<p class="small warn">Not authenticated.</p>'}
@@ -5677,7 +5720,7 @@ async function ensureInitialPlatformOwner(user, accessStatus, role){
     await db.runTransaction(async tx=>{
      const fresh=await tx.get(configRef);
      if(!fresh.exists){
-      tx.set(configRef,{ownerUid:user.uid,ownerEmail:user.email||"",createdAt:firebase.firestore.FieldValue.serverTimestamp()});
+      tx.set(configRef,{ownerUid:user.uid,ownerEmail:authUserEmail(user)||"",createdAt:firebase.firestore.FieldValue.serverTimestamp()});
      }
     });
    }catch(claimErr){console.warn("Owner bootstrap claim skipped:",claimErr?.message||claimErr)}
@@ -5696,12 +5739,15 @@ async function ensureInitialPlatformOwner(user, accessStatus, role){
 async function resolveUserAccess(user){
  if(!db||!user)throw new Error("Cloud access database is unavailable.");
  const ref=db.collection("users").doc(user.uid);
+ const resolvedEmail=authUserEmail(user);
+ const resolvedName=authUserName(user);
+ const providerIds=authProviderIds(user);
  let snap=await ref.get();
  let record=snap.exists?snap.data():null;
  let accessStatus="pending", platformRole="member";
 
  if(!snap.exists){
-  const created={uid:user.uid,email:user.email||"",displayName:user.displayName||(user.email?user.email.split("@")[0]:"Freelancer"),photoURL:user.photoURL||"",accessStatus:"pending",platformRole:"member",createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()};
+  const created={uid:user.uid,email:resolvedEmail,displayName:resolvedName,photoURL:user.photoURL||"",providerIds,emailVerified:!!user.emailVerified,accessStatus:"pending",platformRole:"member",createdAt:firebase.firestore.FieldValue.serverTimestamp(),lastLogin:firebase.firestore.FieldValue.serverTimestamp()};
   await ref.set(created,{merge:true});
   record={...created};
  }else{
@@ -5715,7 +5761,7 @@ async function resolveUserAccess(user){
    accessStatus=normalizeAccessStatus(record.accessStatus);
    platformRole=normalizePlatformRole(record.platformRole);
   }
-  await ref.set({uid:user.uid,email:user.email||record.email||"",displayName:user.displayName||record.displayName||(user.email?user.email.split("@")[0]:"Freelancer"),photoURL:user.photoURL||record.photoURL||"",lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  await ref.set({uid:user.uid,email:resolvedEmail||record.email||"",displayName:resolvedName||record.displayName||"Freelancer",photoURL:user.photoURL||record.photoURL||"",providerIds,emailVerified:!!user.emailVerified,lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
  }
 
  accessStatus=record?.accessStatus&&ACCESS_STATUSES.includes(record.accessStatus)?record.accessStatus:accessStatus;
@@ -5747,7 +5793,7 @@ async function loadApprovedWorkspaceForUser(user, cloudData){
    state.data.applicationKits=[...mergedKits.values()].sort((a,b)=>String(b.createdAt||"").localeCompare(String(a.createdAt||""))).slice(0,40);
   }else if(localKits.length){localKits.slice(0,40).forEach(syncApplicationKitToCloud)}
  }catch(kitErr){console.error("Application Kits cloud load error:",kitErr)}
- localStorage.setItem(KEY,JSON.stringify(state.data));
+ if(activeWorkspaceUid)localStorage.setItem(workspaceStorageKeyForUid(activeWorkspaceUid),JSON.stringify(state.data));
  save();
  console.log("Approved private cloud workspace loaded");
 }
@@ -5762,15 +5808,21 @@ if (auth) {
     isSigningOut = false;
 
     if (!user) {
+      activeWorkspaceUid=null;
+      state.data=cloneDefaultWorkspace();
       authState.loading = false;
       authState.accessStatus = "checking";
       authState.platformRole = "member";
       authState.userRecord = null;
       stopCommunityRealtime();
+      applySettings();
       updateAuthUI();
       return;
     }
 
+    activeWorkspaceUid=user.uid;
+    loadWorkspaceCacheForUser(user);
+    applySettings();
     authState.loading = true;
     authState.accessStatus = "checking";
     updateAuthUI();
@@ -5842,12 +5894,12 @@ function renderAuthPortal() {
   if(authState.user && authState.accessStatus!=="approved"){
     const pending=authState.accessStatus==="pending", blocked=authState.accessStatus==="blocked", accessError=authState.accessStatus==="error";
     container.innerHTML=`<div class="auth-box" style="text-align:center">
-      <div class="auth-header"><div class="brandmark">FD</div><h2>${pending?'Access Request Received':blocked?'Workspace Access Disabled':'Access Check Needed'}</h2><p>${esc(authState.user.email||'Signed-in account')}</p></div>
+      <div class="auth-header"><div class="brandmark">FD</div><h2>${pending?'Access Request Received':blocked?'Workspace Access Disabled':'Access Check Needed'}</h2><p>${esc(authUserEmail(authState.user)||authUserName(authState.user)||'Signed-in account')}</p><div class="tiny muted" style="margin-top:5px">${esc(authUserName(authState.user))} · ${esc(authProviderIds(authState.user).join(', ')||'Firebase account')} · UID ${esc((authState.user?.uid||'').slice(0,10))}…</div></div>
       <div style="font-size:44px;margin:8px 0">${pending?'⏳':blocked?'🔒':'⚠️'}</div>
       <p style="line-height:1.6">${pending?'Your account is signed in, but it is still <strong>Pending Approval</strong>. An Owner/Admin must approve it before the Freelance Desk opens.':blocked?'This account is currently <strong>Blocked</strong> from Freelance Desk. Contact the workspace Owner/Admin if you believe this should be changed.':'Freelance Desk could not confirm your approval status right now.'}</p>
       ${authState.error?`<div class="auth-alert error" style="text-align:left"><span>⚠️</span><div>${esc(authState.error)}</div></div>`:''}
       <div class="actions" style="justify-content:center;margin-top:18px"><button class="btn primary" onclick="refreshAccessStatus()">↻ Refresh Access</button><button type="button" class="btn bad btn-signout">Sign Out</button></div>
-      <p class="tiny muted" style="margin-top:18px">Authentication and workspace authorization are separate. Signing in does not automatically grant access.</p>
+      <p class="tiny muted" style="margin-top:18px">Authentication and workspace authorization are separate. Access is tied to this Firebase account identity (UID), not only to the email address.</p>
     </div>`;
     return;
   }
@@ -5968,9 +6020,16 @@ function handleAuthSubmit(e) {
     });
   } else if (authState.mode === "signup") {
     auth.createUserWithEmailAndPassword(email, pass)
-      .then(cred => {
+      .then(async cred => {
         if (name && cred.user) {
-          cred.user.updateProfile({ displayName: name });
+          await cred.user.updateProfile({ displayName: name });
+          if(db){
+            await db.collection("users").doc(cred.user.uid).set({
+              uid:cred.user.uid,email:authUserEmail(cred.user)||email,displayName:name,
+              providerIds:authProviderIds(cred.user),emailVerified:!!cred.user.emailVerified,
+              accessStatus:"pending",platformRole:"member",lastLogin:firebase.firestore.FieldValue.serverTimestamp()
+            },{merge:true});
+          }
         }
         authState.draftName = "";
         authState.draftEmail = "";
