@@ -48,6 +48,17 @@ hr{border:0;border-top:1px solid var(--line);margin:17px 0}
 @media(max-width:780px){.app{grid-template-columns:1fr}.sidebar{position:fixed;left:-295px;width:275px;transition:.2s}.sidebar.open{left:0;box-shadow:20px 0 50px rgba(0,0,0,.18)}.mobile{display:block}.top{height:65px;padding:0 12px}.top button span{display:none}.content{padding:14px}.hero h2{font-size:28px}.grid{grid-template-columns:1fr}.c3,.c4,.c5,.c6,.c7,.c8,.c12{grid-column:auto}.toolgrid,.linkgrid,.guidegrid,.learngrid,.jobs{grid-template-columns:1fr}.form2,.form3,.jobfilters{grid-template-columns:1fr}.kanban{grid-template-columns:repeat(4,260px)}.calendar-grid{grid-template-columns:repeat(7,90px);overflow:auto}}
 
 body.dark{--bg:#181719;--panel:#222024;--panel2:#2b282e;--ink:#f1edf1;--muted:#aaa1aa;--line:#3b373e;--shadow:0 10px 28px rgba(0,0,0,.25)}
+/* v6: dark-mode form readability + mobile auth contrast */
+body.dark .input,body.dark textarea,body.dark select,body.dark input.input{background:#2b282e;color:#f1edf1;border-color:#504b53;caret-color:#f1edf1}
+body.dark .input::placeholder,body.dark textarea::placeholder,body.dark input::placeholder{color:#aaa1aa;opacity:1}
+body.dark label{color:#d8d0d7}
+body.dark select option{background:#2b282e;color:#f1edf1}
+body.dark .auth-btn-google{background:#2b282e;color:#f1edf1;border-color:#504b53}
+body.dark .auth-btn-google:hover{background:#343039;border-color:#655f69}
+body.dark .auth-tab{color:#c8c0c8}
+body.dark .auth-tab.active{background:#f7f4ef;color:#5a4d78}
+body.dark input:-webkit-autofill,body.dark input:-webkit-autofill:hover,body.dark input:-webkit-autofill:focus{-webkit-text-fill-color:#f1edf1;-webkit-box-shadow:0 0 0 1000px #2b282e inset;box-shadow:0 0 0 1000px #2b282e inset;caret-color:#f1edf1}
+
 body.cool{--bg:#f2f5f6;--panel:#ffffff;--panel2:#e9eef0;--line:#d5dde0}
 body.blush{--bg:#faf2f3;--panel:#fffafb;--panel2:#f3e6e8;--line:#e6d3d7}
 body.compact .pad{padding:15px} body.reduced *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
@@ -110,8 +121,16 @@ body.compact .pad{padding:15px} body.reduced *{animation:none!important;transiti
 </style>
 </head>
 <body>
-<div id="authContainer" class="auth-wrapper hidden"></div>
-<div class="app">
+<div id="authContainer" class="auth-wrapper">
+  <div class="auth-box" aria-live="polite" aria-busy="true">
+    <div class="auth-header">
+      <div class="brandmark">FD</div>
+      <h2>Freelance Desk</h2>
+      <p>Preparing your workspace…</p>
+    </div>
+  </div>
+</div>
+<div class="app hidden">
 <aside class="sidebar" id="sidebar">
   <div class="brand"><div class="brandmark">FD</div><div><h1>Freelance Desk</h1><p>Your free freelancer workspace</p></div></div>
   <div class="navlabel">START</div>
@@ -1787,17 +1806,78 @@ function saveJobPrefs(){const s=state.data.settings;s.jobKeywords=document.getEl
 function settingsAccessRoles(){
  const role=currentPlatformRole(), status=authState?.accessStatus||"approved", canManage=canManagePlatformUsers();
  if(canManage && !authState.accessUsersLoaded && !authState.accessUsersLoading){setTimeout(()=>loadAccessUsers(),0)}
+ if(status==="approved" && role==="member" && authState.ownerSetupStatus==="idle"){setTimeout(()=>checkOwnerSetup(),0)}
  const ownerNote=role==="owner"
-  ? `<div class="auth-alert success"><span>✓</span><div>You are the platform owner. You can approve access and manage platform roles.</div></div>`
+  ? `<div class="auth-alert success"><span>✓</span><div><strong>You are the platform Owner / Super Admin.</strong> Pending access requests will appear below and you can approve, block or assign roles.</div></div>`
   : role==="admin"
     ? `<div class="auth-alert success"><span>✓</span><div>You can approve or block users and manage Member/Moderator roles. Owner controls remain protected.</div></div>`
     : `<div class="livebar">Your account is approved as <strong>${esc(platformRoleLabel(role))}</strong>. User approval controls are available only to Owner/Admin accounts.</div>`;
+ const ownerSetup = status==="approved" && role==="member" ? renderOwnerSetupCard() : "";
  return `<section class="card pad" style="margin-bottom:16px">
    <div class="head"><div><div class="cat">ACCOUNT ACCESS</div><h3 style="margin:6px 0 3px">Your Access & Platform Role</h3></div><div class="row"><span class="pill ${status==='approved'?'good':status==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(status))}</span><span class="pill">${esc(platformRoleLabel(role))}</span></div></div>
    ${ownerNote}
    <p class="small muted">Platform roles are separate from room roles. Owner/Admin manage platform access; Moderator supports community moderation; Member uses the workspace normally. Room Owner/Moderator/Member permissions apply only inside a room.</p>
   </section>
-  ${canManage?`<section class="card pad"><div class="head"><div><div class="cat">APPROVED USER CONTROL</div><h3 style="margin:6px 0 3px">Users & Access Requests</h3><p class="small muted">New accounts are Pending until an Owner/Admin approves them.</p></div><button class="btn" onclick="loadAccessUsers(true)">↻ Refresh</button></div><div id="accessUserList">${renderAccessUsers()}</div></section>`:''}`;
+  ${ownerSetup}
+  ${canManage?`<section class="card pad"><div class="head"><div><div class="cat">ACCESS REQUESTS</div><h3 style="margin:6px 0 3px">Users & Access Requests</h3><p class="small muted">Every new Request Access account is stored as Pending here until an Owner/Admin approves it.</p></div><button class="btn" onclick="loadAccessUsers(true)">↻ Refresh</button></div>${renderAccessSummary()}<div id="accessUserList">${renderAccessUsers()}</div></section>`:''}`;
+}
+
+function renderOwnerSetupCard(){
+ const st=authState.ownerSetupStatus, rec=authState.ownerSetupRecord;
+ if(st==="checking")return `<section class="card pad" style="margin-bottom:16px"><div class="cat">OWNER SETUP</div><h3>Checking workspace ownership…</h3><p class="small muted">Freelance Desk is checking whether an Owner has already been registered.</p></section>`;
+ if(st==="configured" && rec?.ownerUid && rec.ownerUid!==authState.user?.uid)return `<section class="card pad" style="margin-bottom:16px"><div class="cat">OWNER SETUP</div><h3>Workspace Owner Already Configured</h3><p class="small muted">An Owner has already been registered for this workspace. Your current platform role is Member.</p></section>`;
+ if(st==="error")return `<section class="card pad" style="margin-bottom:16px"><div class="auth-alert error"><span>⚠️</span><div><strong>Owner setup could not be checked.</strong><br>${esc(authState.ownerSetupError||"Check your Firebase Firestore rules, then try again.")}</div></div><button class="btn" onclick="checkOwnerSetup(true)">Try Again</button></section>`;
+ return `<section class="card pad" style="margin-bottom:16px;border:2px solid var(--accent)"><div class="cat">ONE-TIME OWNER SETUP</div><h3 style="margin:6px 0">Make this account the Freelance Desk Owner</h3><p class="small muted">Use this only for the workspace creator's account. The first approved account that completes this one-time setup becomes <strong>Owner / Super Admin</strong>. After an Owner is registered, this option is no longer available to other members.</p><button class="btn primary" onclick="claimPlatformOwner()">Claim Owner / Super Admin</button></section>`;
+}
+
+async function checkOwnerSetup(force=false){
+ if(!db||!auth?.currentUser||authState.accessStatus!=="approved"||currentPlatformRole()!=="member")return;
+ if(authState.ownerSetupStatus==="checking"&&!force)return;
+ authState.ownerSetupStatus="checking";authState.ownerSetupError="";
+ if(state.page==="settings"&&state.settingsTab==="Access & Roles")render();
+ try{
+  const snap=await db.collection("system").doc("accessControl").get();
+  authState.ownerSetupRecord=snap.exists?snap.data():null;
+  authState.ownerSetupStatus=snap.exists?"configured":"available";
+ }catch(err){
+  console.error("Owner setup check error:",err);
+  authState.ownerSetupStatus="error";authState.ownerSetupError=err.message||"Unable to check Owner setup.";
+ }
+ if(state.page==="settings"&&state.settingsTab==="Access & Roles")render();
+}
+
+async function claimPlatformOwner(){
+ if(!db||!auth?.currentUser||authState.accessStatus!=="approved")return;
+ const btnEvent=window.event; const btn=btnEvent?.target?.closest?.("button");
+ if(btn){btn.disabled=true;btn.textContent="Claiming Owner…"}
+ try{
+  const role=await ensureInitialPlatformOwner(auth.currentUser,"approved",currentPlatformRole());
+  if(role!=="owner"){
+   const snap=await db.collection("system").doc("accessControl").get();
+   const data=snap.exists?snap.data():null;
+   if(data?.ownerUid && data.ownerUid!==auth.currentUser.uid)throw new Error("An Owner has already been configured for this workspace.");
+   throw new Error("Owner setup was not completed. Deploy the included Firestore security rules, then try again.");
+  }
+  authState.platformRole="owner";authState.ownerSetupStatus="configured";authState.ownerSetupRecord={ownerUid:auth.currentUser.uid,ownerEmail:auth.currentUser.email||""};
+  authState.accessUsersLoaded=false;
+  toast("Owner / Super Admin activated");
+  await loadAccessUsers(true);
+  render();
+ }catch(err){
+  console.error("Claim Owner error:",err);
+  authState.ownerSetupStatus="error";authState.ownerSetupError=err.message||"Unable to claim Owner role.";
+  alert("Could not activate Owner: "+(err.message||err));
+  render();
+ }finally{if(btn){btn.disabled=false;btn.textContent="Claim Owner / Super Admin"}}
+}
+
+function renderAccessSummary(){
+ const rows=Array.isArray(authState.accessUsers)?authState.accessUsers:[];
+ if(!authState.accessUsersLoaded||authState.accessUsersLoading||!rows.length)return "";
+ const pending=rows.filter(u=>(u.accessStatus||"pending")==="pending").length;
+ const approved=rows.filter(u=>u.accessStatus==="approved").length;
+ const blocked=rows.filter(u=>u.accessStatus==="blocked").length;
+ return `<div class="grid" style="margin:0 0 14px"><div class="card pad c4" style="box-shadow:none"><div class="tiny muted">PENDING REQUESTS</div><div class="stat" style="font-size:24px">${pending}</div></div><div class="card pad c4" style="box-shadow:none"><div class="tiny muted">APPROVED USERS</div><div class="stat" style="font-size:24px">${approved}</div></div><div class="card pad c4" style="box-shadow:none"><div class="tiny muted">BLOCKED</div><div class="stat" style="font-size:24px">${blocked}</div></div></div>`;
 }
 function renderAccessUsers(){
  if(authState.accessUsersLoading)return `<div class="empty">Loading users…</div>`;
@@ -1820,7 +1900,11 @@ async function loadAccessUsers(force=false){
  if(state.page==="settings"&&state.settingsTab==="Access & Roles")render();
  try{
   const snap=await db.collection("users").limit(200).get();
-  authState.accessUsers=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>String(a.email||a.displayName||"").localeCompare(String(b.email||b.displayName||"")));
+  authState.accessUsers=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>{
+   const order={pending:0,approved:1,blocked:2};
+   const ds=(order[a.accessStatus||"pending"]??9)-(order[b.accessStatus||"pending"]??9);
+   return ds||String(a.email||a.displayName||"").localeCompare(String(b.email||b.displayName||""));
+  });
   authState.accessUsersLoaded=true;
  }catch(err){console.error("Access user list error:",err);authState.accessUsersError=err.message||"Unable to load user access records."}
  finally{authState.accessUsersLoading=false;if(state.page==="settings"&&state.settingsTab==="Access & Roles")render()}
@@ -5554,7 +5638,12 @@ const authState = {
   accessUsers: [],
   accessUsersLoaded: false,
   accessUsersLoading: false,
-  accessUsersError: ""
+  accessUsersError: "",
+  ownerSetupStatus: "idle",
+  ownerSetupRecord: null,
+  ownerSetupError: "",
+  draftName: "",
+  draftEmail: ""
 };
 
 let isGoogleSigningIn = false;
@@ -5774,8 +5863,8 @@ function renderAuthPortal() {
       <div class="auth-divider"><span>or with email</span></div>
 
       <form onsubmit="handleAuthSubmit(event)" style="display:flex;flex-direction:column;gap:12px">
-        ${mode === 'signup' ? `<div><label>Full Name</label><input type="text" id="authName" class="input" placeholder="e.g. Maria Santos" required></div>` : ''}
-        <div><label>Email Address</label><input type="email" id="authEmail" class="input" placeholder="you@example.com" required></div>
+        ${mode === 'signup' ? `<div><label>Full Name</label><input type="text" id="authName" class="input" placeholder="e.g. Maria Santos" value="${esc(authState.draftName||'')}" oninput="authState.draftName=this.value" autocomplete="name" required></div>` : ''}
+        <div><label>Email Address</label><input type="email" id="authEmail" class="input" placeholder="you@example.com" value="${esc(authState.draftEmail||'')}" oninput="authState.draftEmail=this.value" autocomplete="email" required></div>
         ${mode !== 'forgot' ? `<div><label>Password</label><input type="password" id="authPassword" class="input" placeholder="••••••••" required minlength="6"></div>` : ''}
         <button type="submit" class="btn primary" style="padding:12px;margin-top:6px;width:100%;font-weight:800" id="authSubmitBtn">${mode === 'login' ? 'Sign In to Workspace' : mode === 'signup' ? 'Create Account & Request Access' : 'Send Reset Link'}</button>
       </form>
@@ -5848,6 +5937,8 @@ function handleAuthSubmit(e) {
   const email = emailEl ? emailEl.value.trim() : "";
   const pass = passEl ? passEl.value : "";
   const name = nameEl ? nameEl.value.trim() : "";
+  authState.draftEmail = email;
+  if (nameEl) authState.draftName = name;
 
   const btn = document.getElementById("authSubmitBtn");
   if (btn) btn.disabled = true;
@@ -5866,6 +5957,8 @@ function handleAuthSubmit(e) {
         if (name && cred.user) {
           cred.user.updateProfile({ displayName: name });
         }
+        authState.draftName = "";
+        authState.draftEmail = "";
       })
       .catch(err => {
         authState.error = formatAuthError(err);
