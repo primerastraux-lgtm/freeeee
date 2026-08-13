@@ -834,12 +834,13 @@ function getStartHereState(){
 }
 function startHereStatus(){
  const sh=getStartHereState(),ac=getAcademyData(),p=state.data.profile||{},pc=profileCompleteness();
- const foundationDone=foundationLessons.filter(l=>state.data.learningProgress?.[l.id]?.completed).length;
+ const stagePath=stageLessonsFor(ac.stage||"beginner");
+ const stageLessonsDone=stagePath.filter(l=>state.data.learningProgress?.[l.id]?.completed).length;
  const steps=[
   {id:"stage",title:"Choose Your Career Stage",desc:"Start here so Freelance Desk can give you the right lesson path for Total Beginner, Career Shifter, Building Experience, Returning Freelancer, Experienced, Senior, or Transitioning Professional.",done:!!ac.stageSelectedAt,page:"academy-stage",cta:"Choose Career Stage"},
-  {id:"lessons",title:"Follow Your Personalized Lessons",desc:"Complete the core freelancing foundations plus the lessons designed for your selected career stage.",done:foundationDone>=5 && stageLessonsFor(ac.stage||"beginner").some(l=>state.data.learningProgress?.[l.id]?.completed),page:"learn",cta:"Open My Lessons"},
+  {id:"lessons",title:"Follow Your Personalized Lessons",desc:"Work through your Career Stage Path and Operator Hidden Gems. Foundation lessons stay optional and do not inflate this roadmap progress.",done:stagePath.length>0 && stageLessonsDone>=Math.min(2,stagePath.length),page:"learn",cta:"Open My Lessons"},
   {id:"profile",title:"Complete My Profile",desc:"Add your professional identity, niche, target client, services, skills, availability and links.",done:pc.score>=70,page:"profile",cta:"Open My Profile"},
-  {id:"track",title:"Choose Your Niche Track",desc:"Select the work track you want to practice and build proof for.",done:!!ac.track && ac.track!=="general_va" || !!sh.manual.track,page:"academy-tracks",cta:"Choose Niche Track"},
+  {id:"track",title:"Choose Your Niche Track",desc:"Select the work track you want to practice and build proof for.",done:(!!ac.track && ac.track!=="general_va") || !!sh.manual.track,page:"academy-tracks",cta:"Choose Niche Track"},
   {id:"brand",title:"Build Brand & USP",desc:"Define your target client, pain points, USP, positioning, core service and CTA.",done:!!(ac.branding&&ac.branding.usp),page:"academy-branding",cta:"Build Brand & USP"},
   {id:"lab",title:"Complete a Real Work Lab Task",desc:"Practice a realistic client problem, document your decisions, and save evidence for your portfolio.",done:(ac.realWorkLab?.completedSimulations||[]).length>0,page:"academy-lab",cta:"Open Real Work Lab"},
   {id:"portfolio",title:"Create Portfolio Proof",desc:"Turn a completed practice task into a clearly labeled portfolio project or case study.",done:Object.keys(state.data.portfolioProgress||{}).length>0 || !!sh.manual.portfolio,page:"portfolio",cta:"Open Portfolio Lab"},
@@ -6867,13 +6868,38 @@ function renderPortfolioBuilder(){const p=pf(),types=[['hero','Hero / Intro'],['
 function downloadPortfolioHtml(){const p=pf();downloadTextFile((p.brandName||'portfolio').replace(/[^a-z0-9]+/gi,'_')+'_Portfolio.html',portfolioStandaloneHtml(),'text/html')}
 function savePortfolioToVault(){const c=ensureCareerStudio(),p=c.portfolio,text=p.sections.map(x=>`${x.title}\n${x.content}`).join('\n\n');let d=p.vaultDocId&&state.data.profileDocs.find(x=>x.id===p.vaultDocId);if(d){d.text=text;d.name=(p.brandName||'My')+' Portfolio';d.addedAt=new Date().toISOString()}else{d={id:uid(),name:(p.brandName||'My')+' Portfolio',type:'generated text',kind:'PORTFOLIO',text,addedAt:new Date().toISOString()};state.data.profileDocs.push(d);p.vaultDocId=d.id}syncCareerDocToCloud(d);save();toast('Portfolio saved to Career Vault')}
 
+function normalizeWorkspaceForRender(){
+ if(!state.data || typeof state.data!=="object" || Array.isArray(state.data))state.data={};
+ const d=state.data;
+ if(!d.profile || typeof d.profile!=="object" || Array.isArray(d.profile))d.profile={name:"Friend",title:"Freelancer / Virtual Assistant",niches:[],skills:""};
+ if(!d.settings || typeof d.settings!=="object" || Array.isArray(d.settings))d.settings={};
+ ["tasks","events","links","snippets","clients","invoices","notes","jobs","externalCommunities","customProjects","favorites","focusSessions","profileDocs","applicationKits"].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+ if(!Array.isArray(d.sheet))d.sheet=Array.from({length:25},()=>"");
+ ["learning","learningProgress","portfolio","portfolioProgress","preferences","templateDrafts"].forEach(k=>{if(!d[k] || typeof d[k]!=="object" || Array.isArray(d[k]))d[k]={}});
+ if(!d.academy || typeof d.academy!=="object" || Array.isArray(d.academy))d.academy={};
+ const ac=d.academy;
+ if(!ac.realWorkLab || typeof ac.realWorkLab!=="object" || Array.isArray(ac.realWorkLab))ac.realWorkLab={activeSimulation:null,completedSimulations:[]};
+ if(!Array.isArray(ac.realWorkLab.completedSimulations))ac.realWorkLab.completedSimulations=[];
+ if(!ac.mockInterview || typeof ac.mockInterview!=="object" || Array.isArray(ac.mockInterview))ac.mockInterview={mode:"recruiter",activeSession:null,completedAttempts:[]};
+ if(!Array.isArray(ac.mockInterview.completedAttempts))ac.mockInterview.completedAttempts=[];
+}
+function renderErrorCard(err){
+ const c=document.getElementById("content");if(!c)return;
+ const msg=err?.message||String(err||"Unknown render error");
+ c.innerHTML=`<div class="card pad" style="max-width:760px;margin:28px auto;border:2px solid var(--warn)"><div class="eyebrow">WORKSPACE RECOVERY</div><h2 style="margin:8px 0">This page could not finish loading.</h2><p class="muted">Your account data is still intact. Freelance Desk caught the page error instead of leaving you with a blank screen.</p><div class="notice small"><strong>Technical detail:</strong> ${esc(msg)}</div><div class="actions"><button class="btn primary" onclick="navigate('start-here')">Reload Start Here</button><button class="btn" onclick="navigate('home')">Go Home</button><button class="btn" onclick="location.reload()">Refresh App</button></div></div>`;
+}
 function render(){
- const r={"start-here":renderStartHere,announcements:renderAnnouncements,home:renderHome,desk:renderDesk,community:renderCommunity,jobs:renderJobs,tracker:renderTracker,portfolio:renderPortfolio,"resume-studio":renderResumeStudio,"portfolio-builder":renderPortfolioBuilder,profile:renderMyProfile,tools:renderTools,"automation-studio":renderAutomationStudio,"mockup-studio":renderMockupStudio,"typing-lab":renderTypingLab,"template-library":renderTemplateLibrary,"open-source-lab":renderOpenSourceLab,workflows:renderWorkflows,guides:renderGuides,learn:renderLearn,ai:renderAI,settings:renderSettings,"academy-home":renderAcademyHome,"academy-stage":renderAcademyStage,"academy-tracks":renderAcademyTracks,"academy-lab":renderAcademyLab,"academy-interview":renderAcademyInterview,"academy-client-ready":renderAcademyClientReady,"academy-pricing":renderAcademyPricing,"academy-branding":renderAcademyBranding,"academy-content":renderAcademyContent,"academy-acquisition":renderAcademyAcquisition}[state.page];
- document.getElementById("content").innerHTML=r ? r() : '<div class="card pad"><h3>Page not found</h3><p class="small muted">This shortcut is no longer valid.</p><button class="btn" onclick="goBack()">← Go Back</button></div>';
- syncNavChrome();
- if(state.page==="typing-lab")setTimeout(()=>resetTyping(true),20);
- if(state.page==="template-library")setTimeout(()=>filterWebTemplates(true),20);
- if(state.page==="jobs"&&!state.liveJobs.length)setTimeout(()=>loadLiveJobs(false),60);
+ try{
+  normalizeWorkspaceForRender();
+  const r={"start-here":renderStartHere,announcements:renderAnnouncements,home:renderHome,desk:renderDesk,community:renderCommunity,jobs:renderJobs,tracker:renderTracker,portfolio:renderPortfolio,"resume-studio":renderResumeStudio,"portfolio-builder":renderPortfolioBuilder,profile:renderMyProfile,tools:renderTools,"automation-studio":renderAutomationStudio,"mockup-studio":renderMockupStudio,"typing-lab":renderTypingLab,"template-library":renderTemplateLibrary,"open-source-lab":renderOpenSourceLab,workflows:renderWorkflows,guides:renderGuides,learn:renderLearn,ai:renderAI,settings:renderSettings,"academy-home":renderAcademyHome,"academy-stage":renderAcademyStage,"academy-tracks":renderAcademyTracks,"academy-lab":renderAcademyLab,"academy-interview":renderAcademyInterview,"academy-client-ready":renderAcademyClientReady,"academy-pricing":renderAcademyPricing,"academy-branding":renderAcademyBranding,"academy-content":renderAcademyContent,"academy-acquisition":renderAcademyAcquisition}[state.page];
+  const content=document.getElementById("content");
+  if(!content)throw new Error("Main content container is missing.");
+  content.innerHTML=r ? r() : '<div class="card pad"><h3>Page not found</h3><p class="small muted">This shortcut is no longer valid.</p><button class="btn" onclick="goBack()">← Go Back</button></div>';
+  syncNavChrome();
+  if(state.page==="typing-lab")setTimeout(()=>resetTyping(true),20);
+  if(state.page==="template-library")setTimeout(()=>filterWebTemplates(true),20);
+  if(state.page==="jobs"&&!state.liveJobs.length)setTimeout(()=>loadLiveJobs(false),60);
+ }catch(err){console.error("Freelance Desk render error:",err);renderErrorCard(err);try{syncNavChrome()}catch(e){}}
 }
 document.getElementById("menu").onclick=()=>document.getElementById("sidebar").classList.toggle("open");
 document.getElementById("search").onclick=openSearch;
