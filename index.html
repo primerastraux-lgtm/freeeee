@@ -278,7 +278,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
   <div class="navlabel">PERSONAL</div>
   <button class="nav" data-page="profile"><span class="ic">◉</span>My Profile</button>
   <button class="nav" data-page="settings"><span class="ic">⚙</span>Settings</button>
-  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Private workspace data syncs to your signed-in account; shared Community rooms use separate Firestore collections.<br><span class="tiny muted">Build v30</span></div>
+  <div class="side-note"><strong>FREE-FIRST.</strong><br>No paid API is required for core features. Private workspace data syncs to your signed-in account; shared Community rooms use separate Firestore collections.<br><span class="tiny muted">Build v31</span></div>
 </aside>
 
 <main class="main">
@@ -305,7 +305,7 @@ input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8}
 
 <script>
 const KEY="freelance_desk_v4";
-const FD_BUILD="v30";
+const FD_BUILD="v31";
 const JOB_CACHE_KEY="freelance_desk_livejobs_v5";
 const DAY=24*60*60*1000;
 const today=()=>new Date().toISOString().slice(0,10);
@@ -2645,7 +2645,7 @@ function settingsAccessRoles(){
    <p class="small muted">Platform roles are separate from room roles. Owner/Admin manage platform access; Moderator supports community moderation; Member uses the workspace normally. Room Owner/Moderator/Member permissions apply only inside a room.</p>
   </section>
   ${ownerSetup}
-  ${canManage?`<section class="card pad"><div class="head"><div><div class="cat">ACCESS REQUESTS</div><h3 style="margin:6px 0 3px">Users & Access Requests</h3><p class="small muted">Every new Request Access account is stored as Pending here until an Owner/Admin approves it.</p></div><button class="btn" onclick="loadAccessUsers(true)">↻ Refresh</button></div>${renderAccessSummary()}<div id="accessUserList">${renderAccessUsers()}</div></section>`:''}`;
+  ${canManage?`<section class="card pad"><div class="head"><div><div class="cat">ACCESS REQUESTS</div><h3 style="margin:6px 0 3px">Users & Access Requests</h3><p class="small muted">Every new Request Access account is stored as Pending here until an Owner/Admin approves it. Activity tracking shows when approved users last opened the workspace so you can review inactive access before blocking it.</p></div><button class="btn" onclick="loadAccessUsers(true)">↻ Refresh</button></div>${renderAccessSummary()}<div id="accessUserList">${renderAccessUsers()}</div>${role==="owner"?`<div class="auth-alert warn" style="margin-top:14px"><span>ℹ️</span><div><strong>About deleting accounts:</strong> Block/Unblock works directly in this dashboard. A true Firebase Authentication account deletion requires a trusted Admin SDK backend; deleting only the Firestore user row would not delete the sign-in credential. For now, use Block for inactive accounts rather than a fake “Delete Account” button.</div></div>`:""}</section>`:''}`;
 }
 
 function renderOwnerSetupCard(){
@@ -2703,39 +2703,87 @@ function renderAccessSummary(){
  const pending=rows.filter(u=>(u.accessStatus||"pending")==="pending").length;
  const approved=rows.filter(u=>u.accessStatus==="approved").length;
  const blocked=rows.filter(u=>u.accessStatus==="blocked").length;
- return `<div class="grid" style="margin:0 0 14px"><div class="card pad c4" style="box-shadow:none"><div class="tiny muted">PENDING REQUESTS</div><div class="stat" style="font-size:24px">${pending}</div></div><div class="card pad c4" style="box-shadow:none"><div class="tiny muted">APPROVED USERS</div><div class="stat" style="font-size:24px">${approved}</div></div><div class="card pad c4" style="box-shadow:none"><div class="tiny muted">BLOCKED</div><div class="stat" style="font-size:24px">${blocked}</div></div></div>`;
+ const inactive30=rows.filter(u=>u.accessStatus==="approved" && ["inactive30","inactive60","inactive90","never"].includes(activityBucket(u))).length;
+ return `<div class="grid" style="margin:0 0 14px">
+  <div class="card pad c3" style="box-shadow:none"><div class="tiny muted">PENDING</div><div class="stat" style="font-size:24px">${pending}</div></div>
+  <div class="card pad c3" style="box-shadow:none"><div class="tiny muted">APPROVED</div><div class="stat" style="font-size:24px">${approved}</div></div>
+  <div class="card pad c3" style="box-shadow:none"><div class="tiny muted">BLOCKED</div><div class="stat" style="font-size:24px">${blocked}</div></div>
+  <div class="card pad c3" style="box-shadow:none"><div class="tiny muted">INACTIVE 30D+</div><div class="stat" style="font-size:24px">${inactive30}</div></div>
+ </div>`;
 }
 function renderAccessUsers(){
  if(authState.accessUsersLoading)return `<div class="empty">Loading users…</div>`;
  if(authState.accessUsersError)return `<div class="auth-alert error"><span>⚠️</span><div>${esc(authState.accessUsersError)}</div></div>`;
  const rows=Array.isArray(authState.accessUsers)?authState.accessUsers:[];
  if(!rows.length)return `<div class="empty">No user records loaded yet.</div>`;
- const me=authState.user?.uid, myRole=currentPlatformRole();
- const pendingRows=rows.filter(u=>(u.accessStatus||"pending")==="pending");
- const managedRows=rows.filter(u=>(u.accessStatus||"pending")!=="pending");
+ const me=authState.user?.uid,myRole=currentPlatformRole();
+
  const emailGroups={};
  rows.forEach(u=>{const e=String(u.email||"").trim().toLowerCase();if(e)(emailGroups[e]||(emailGroups[e]=[])).push(u)});
  const duplicates=Object.entries(emailGroups).filter(([,items])=>items.length>1);
- const duplicateNotice=duplicates.length?`<div class="auth-alert error" style="margin-bottom:14px"><span>⚠️</span><div><strong>Duplicate Firebase identities detected for the same email.</strong><br>${duplicates.map(([email,items])=>`${esc(email)} → ${items.length} UIDs`).join('<br>')}<br><span class="tiny">Approval is stored by UID. Keep one Firebase identity per email and remove/link duplicates in Firebase Authentication.</span></div></div>`:"";
+ const duplicateNotice=duplicates.length?`<div class="auth-alert warn" style="margin-bottom:12px"><span>⚠️</span><div><strong>Duplicate identity check:</strong> ${duplicates.length} email${duplicates.length===1?'':'s'} currently map to more than one Firebase UID. Review provider + UID before changing access.</div></div>`:"";
+
+ const controls=`<div class="row" style="margin:0 0 12px">
+  <select class="input" style="max-width:220px" onchange="setAccessActivityFilter(this.value)">
+   <option value="all" ${authState.accessActivityFilter==="all"?'selected':''}>All users</option>
+   <option value="active7" ${authState.accessActivityFilter==="active7"?'selected':''}>Active in last 7 days</option>
+   <option value="active30" ${authState.accessActivityFilter==="active30"?'selected':''}>Active in last 30 days</option>
+   <option value="inactive30" ${authState.accessActivityFilter==="inactive30"?'selected':''}>Inactive 31–60 days</option>
+   <option value="inactive60" ${authState.accessActivityFilter==="inactive60"?'selected':''}>Inactive 61–90 days</option>
+   <option value="inactive90" ${authState.accessActivityFilter==="inactive90"?'selected':''}>Inactive 90+ days</option>
+   <option value="never" ${authState.accessActivityFilter==="never"?'selected':''}>Never opened</option>
+   <option value="blocked" ${authState.accessActivityFilter==="blocked"?'selected':''}>Blocked only</option>
+  </select>
+  <select class="input" style="max-width:210px" onchange="setAccessActivitySort(this.value)">
+   <option value="recent" ${authState.accessActivitySort==="recent"?'selected':''}>Recent activity first</option>
+   <option value="oldest" ${authState.accessActivitySort==="oldest"?'selected':''}>Least active first</option>
+   <option value="name" ${authState.accessActivitySort==="name"?'selected':''}>Name / email</option>
+  </select>
+  <span class="tiny muted">Last Opened is written at most once every 6 hours per device to keep activity tracking lightweight.</span>
+ </div>`;
+
+ const pendingRows=rows.filter(u=>(u.accessStatus||"pending")==="pending");
+ let managedRows=rows.filter(u=>(u.accessStatus||"pending")!=="pending");
+
+ const filter=authState.accessActivityFilter||"all";
+ if(filter==="blocked")managedRows=managedRows.filter(u=>u.accessStatus==="blocked");
+ else if(filter!=="all")managedRows=managedRows.filter(u=>activityBucket(u)===filter || (filter==="active30"&&activityBucket(u)==="active7"));
+
+ managedRows=[...managedRows].sort((a,b)=>{
+  if(authState.accessActivitySort==="name")return String(a.displayName||a.email||"").localeCompare(String(b.displayName||b.email||""));
+  const am=userLastOpenedMillis(a),bm=userLastOpenedMillis(b);
+  return authState.accessActivitySort==="oldest"?(am||0)-(bm||0):(bm||0)-(am||0);
+ });
 
  const rowHtml=u=>{
-   const uidValue=u.uid||u.id||"", targetRole=u.platformRole||"member", targetStatus=u.accessStatus||"pending", isSelf=uidValue===me;
-   const protectedForAdmin=myRole==="admin" && ["owner","admin"].includes(targetRole);
-   const manageable=!isSelf && !protectedForAdmin;
-   const roleOptions=(myRole==="owner"?["member","moderator","admin","owner"]:["member","moderator"]).map(r=>`<option value="${r}" ${targetRole===r?'selected':''}>${esc(platformRoleLabel(r))}</option>`).join("");
-   let actions='<span class="tiny muted">Protected / current account</span>';
-   if(manageable){
-     const approveBtn=targetStatus==="approved"?`<button class="btn sm good" disabled title="This user is already approved">✓ Approved</button>`:`<button class="btn sm good" onclick="setPlatformUserAccess('${esc(uidValue)}','approved')">Approve</button>`;
-     const pendingBtn=targetStatus==="pending"?`<button class="btn sm" disabled title="This request is already pending">Pending</button>`:`<button class="btn sm" onclick="setPlatformUserAccess('${esc(uidValue)}','pending')">Set Pending</button>`;
-     const blockBtn=targetStatus==="blocked"?`<button class="btn sm bad" disabled title="This user is already blocked">Blocked</button>`:`<button class="btn sm bad" onclick="setPlatformUserAccess('${esc(uidValue)}','blocked')">Block</button>`;
-     actions=`<div class="actions">${approveBtn}${pendingBtn}${blockBtn}</div>`;
+   const uidValue=u.uid||u.id,targetStatus=normalizeAccessStatus(u.accessStatus),targetRole=normalizePlatformRole(u.platformRole);
+   const isSelf=uidValue===me,manageable=canManageAccessTarget(u);
+   const roleOptions=PLATFORM_ROLES.map(r=>`<option value="${r}" ${r===targetRole?'selected':''} ${myRole==='admin'&&!['member','moderator'].includes(r)?'disabled':''}>${esc(platformRoleLabel(r))}</option>`).join("");
+   let actions="";
+   if(isSelf)actions=`<span class="tiny muted">Protected / current account</span>`;
+   else if(!manageable)actions=`<span class="tiny muted">Protected by role</span>`;
+   else if(targetStatus==="pending"){
+     actions=`<div class="actions"><button class="btn sm good" onclick="setPlatformUserAccess('${esc(uidValue)}','approved')">Approve</button><button class="btn sm bad" onclick="setPlatformUserAccess('${esc(uidValue)}','blocked')">Block</button></div>`;
+   }else if(targetStatus==="approved"){
+     actions=`<div class="actions"><button class="btn sm bad" onclick="setPlatformUserAccess('${esc(uidValue)}','blocked')">Block</button><button class="btn sm" onclick="setPlatformUserAccess('${esc(uidValue)}','pending')">Return to Pending</button></div>`;
+   }else{
+     actions=`<div class="actions"><button class="btn sm good" onclick="setPlatformUserAccess('${esc(uidValue)}','approved')">Unblock</button><button class="btn sm" onclick="setPlatformUserAccess('${esc(uidValue)}','pending')">Set Pending</button></div>`;
    }
-   return `<tr><td><strong>${esc(u.displayName||u.email||"User")}</strong><div class="tiny muted">${esc(u.email||"")}</div><div class="tiny muted">${esc((u.providerIds||[]).join(', ')||'provider not recorded')}</div><div class="tiny muted" style="font-family:monospace">${esc(uidValue)}</div>${isSelf?'<span class="pill good" style="margin-top:5px">YOU</span>':''}</td><td><span class="pill ${targetStatus==='approved'?'good':targetStatus==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(targetStatus))}</span></td><td>${manageable?`<select class="input" style="min-width:160px" onchange="setPlatformUserRole('${esc(uidValue)}',this.value)">${roleOptions}</select>`:`<span class="pill">${esc(platformRoleLabel(targetRole))}</span>`}</td><td>${esc(roomDate(u.lastLogin)||'—')}</td><td>${actions}</td></tr>`;
+   const lastMs=userLastOpenedMillis(u),lastText=lastMs?roomDate(u.lastOpenedAt||u.lastLogin):"—";
+   return `<tr>
+    <td><strong>${esc(u.displayName||u.email||"User")}</strong><div class="tiny muted">${esc(u.email||"")}</div><div class="tiny muted">${esc((u.providerIds||[]).join(', ')||'provider not recorded')}</div><div class="tiny muted" style="font-family:monospace">${esc(uidValue)}</div>${isSelf?'<span class="pill good" style="margin-top:5px">YOU</span>':''}</td>
+    <td><span class="pill ${targetStatus==='approved'?'good':targetStatus==='blocked'?'bad':'warn'}">${esc(accessStatusLabel(targetStatus))}</span></td>
+    <td>${manageable?`<select class="input" style="min-width:160px" onchange="setPlatformUserRole('${esc(uidValue)}',this.value)">${roleOptions}</select>`:`<span class="pill">${esc(platformRoleLabel(targetRole))}</span>`}</td>
+    <td><strong>${esc(lastText)}</strong><div class="tiny muted">${esc(relativeActivityLabel(lastMs))}</div><div style="margin-top:5px">${activityBadge(u)}</div></td>
+    <td><strong>${Number(u.openCount||0)}</strong><div class="tiny muted">tracked opens</div></td>
+    <td>${actions}</td>
+   </tr>`;
  };
 
- const tableFor=list=>`<div class="table"><table style="min-width:920px"><thead><tr><th>User</th><th>Status</th><th>Platform Role</th><th>Last Login</th><th>Actions</th></tr></thead><tbody>${list.map(rowHtml).join("")}</tbody></table></div>`;
+ const tableFor=list=>`<div class="table"><table style="min-width:1080px"><thead><tr><th>User</th><th>Status</th><th>Platform Role</th><th>Last Opened</th><th>Opens</th><th>Actions</th></tr></thead><tbody>${list.map(rowHtml).join("")}</tbody></table></div>`;
+
  const pendingSection=`<div style="margin-bottom:18px"><div class="head" style="margin-bottom:8px"><div><h4 style="margin:0">Pending Access Requests</h4><p class="small muted" style="margin:4px 0 0">New access requests stay here until you approve or block them.</p></div><span class="pill ${pendingRows.length?'warn':'good'}">${pendingRows.length} Pending</span></div>${pendingRows.length?tableFor(pendingRows):'<div class="empty" style="padding:18px">No pending access requests. ✓</div>'}</div>`;
- const usersSection=`<div><div class="head" style="margin-bottom:8px"><div><h4 style="margin:0">Approved & Blocked Users</h4><p class="small muted" style="margin:4px 0 0">Approved users no longer remain in the pending queue.</p></div></div>${managedRows.length?tableFor(managedRows):'<div class="empty" style="padding:18px">No approved or blocked users yet.</div>'}</div>`;
+ const usersSection=`<div><div class="head" style="margin-bottom:8px"><div><h4 style="margin:0">Approved & Blocked Users</h4><p class="small muted" style="margin:4px 0 0">Use activity filters to review inactive users before blocking or restoring access.</p></div></div>${controls}${managedRows.length?tableFor(managedRows):'<div class="empty" style="padding:18px">No users match this activity filter.</div>'}</div>`;
  return duplicateNotice+pendingSection+usersSection;
 }
 async function loadAccessUsers(force=false){
@@ -2764,8 +2812,20 @@ async function setPlatformUserAccess(uidValue,status){
  if(!["approved","pending","blocked"].includes(status)||!db||!canManagePlatformUsers())return;
  const target=accessUserRecord(uidValue);if(!canManageAccessTarget(target))return toast("That account is protected");
  try{
-  await db.collection("users").doc(uidValue).set({accessStatus:status,accessUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),accessUpdatedBy:auth.currentUser.uid},{merge:true});
-  toast(`Access set to ${accessStatusLabel(status)}`);await loadAccessUsers(true);
+  const payload={
+   accessStatus:status,
+   accessUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+   accessUpdatedBy:auth.currentUser.uid
+  };
+  if(status==="approved"){
+   if(target?.accessStatus==="blocked")payload.unblockedAt=firebase.firestore.FieldValue.serverTimestamp();
+   if(!target?.approvedAt)payload.approvedAt=firebase.firestore.FieldValue.serverTimestamp();
+  }
+  if(status==="blocked")payload.blockedAt=firebase.firestore.FieldValue.serverTimestamp();
+  if(status==="pending")payload.returnedToPendingAt=firebase.firestore.FieldValue.serverTimestamp();
+  await db.collection("users").doc(uidValue).set(payload,{merge:true});
+  toast(status==="approved"&&target?.accessStatus==="blocked"?"User unblocked":`Access set to ${accessStatusLabel(status)}`);
+  await loadAccessUsers(true);
  }catch(err){console.error("Update access error:",err);alert("Could not update access: "+(err.message||err))}
 }
 async function setPlatformUserRole(uidValue,role){
@@ -7429,7 +7489,9 @@ const authState = {
   ownerSetupRecord: null,
   ownerSetupError: "",
   draftName: "",
-  draftEmail: ""
+  draftEmail: "",
+  accessActivityFilter: "all",
+  accessActivitySort: "recent"
 };
 
 let isGoogleSigningIn = false;
@@ -7437,6 +7499,74 @@ let isSigningOut = false;
 
 function normalizeAccessStatus(v){return ACCESS_STATUSES.includes(v)?v:"pending"}
 function normalizePlatformRole(v){return PLATFORM_ROLES.includes(v)?v:"member"}
+
+function firestoreMillis(v){
+ if(!v)return 0;
+ if(typeof v?.toMillis==="function")return v.toMillis();
+ if(v?.seconds)return Number(v.seconds)*1000;
+ const d=new Date(v);return isNaN(d.getTime())?0:d.getTime();
+}
+function userLastOpenedMillis(u){
+ return firestoreMillis(u?.lastOpenedAt)||firestoreMillis(u?.lastLogin)||0;
+}
+function relativeActivityLabel(ms){
+ if(!ms)return "Never opened";
+ const diff=Math.max(0,Date.now()-ms),day=86400000;
+ if(diff<3600000)return "Within the hour";
+ if(diff<day)return "Today";
+ const days=Math.floor(diff/day);
+ if(days===1)return "1 day ago";
+ if(days<30)return `${days} days ago`;
+ const months=Math.floor(days/30);
+ if(days<365)return `${months} month${months===1?"":"s"} ago`;
+ const years=Math.floor(days/365);
+ return `${years} year${years===1?"":"s"} ago`;
+}
+function activityBucket(u){
+ const ms=userLastOpenedMillis(u);
+ if(!ms)return "never";
+ const days=(Date.now()-ms)/86400000;
+ if(days<=7)return "active7";
+ if(days<=30)return "active30";
+ if(days<=60)return "inactive30";
+ if(days<=90)return "inactive60";
+ return "inactive90";
+}
+function activityBadge(u){
+ const b=activityBucket(u);
+ if(b==="never")return `<span class="pill warn">Never Opened</span>`;
+ if(b==="active7")return `<span class="pill good">Active ≤7d</span>`;
+ if(b==="active30")return `<span class="pill">Active ≤30d</span>`;
+ if(b==="inactive30")return `<span class="pill warn">Inactive 31–60d</span>`;
+ if(b==="inactive60")return `<span class="pill warn">Inactive 61–90d</span>`;
+ return `<span class="pill bad">Inactive 90d+</span>`;
+}
+async function recordApprovedWorkspaceOpen(user){
+ if(!db||!user||authState.accessStatus!=="approved")return;
+ try{
+  const key=`fd_last_open_write_${user.uid}`;
+  const last=Number(localStorage.getItem(key)||0);
+  // Resource-conscious: at most one activity write per device every 6 hours.
+  if(last && Date.now()-last < 6*60*60*1000)return;
+  await db.collection("users").doc(user.uid).set({
+   lastOpenedAt:firebase.firestore.FieldValue.serverTimestamp(),
+   lastOpenedBuild:FD_BUILD,
+   openCount:firebase.firestore.FieldValue.increment(1)
+  },{merge:true});
+  localStorage.setItem(key,String(Date.now()));
+ }catch(err){console.warn("Last-open activity update skipped:",err?.message||err)}
+}
+async function recordExplicitLogin(user){
+ if(!db||!user)return;
+ try{
+  await db.collection("users").doc(user.uid).set({
+   lastLogin:firebase.firestore.FieldValue.serverTimestamp()
+  },{merge:true});
+ }catch(err){console.warn("Login timestamp update skipped:",err?.message||err)}
+}
+function setAccessActivityFilter(v){authState.accessActivityFilter=v;render()}
+function setAccessActivitySort(v){authState.accessActivitySort=v;render()}
+
 
 async function ensureInitialPlatformOwner(user, accessStatus, role){
  if(!db||!user||accessStatus!=="approved")return role;
@@ -7489,7 +7619,7 @@ async function resolveUserAccess(user){
    accessStatus=normalizeAccessStatus(record.accessStatus);
    platformRole=normalizePlatformRole(record.platformRole);
   }
-  await ref.set({uid:user.uid,email:resolvedEmail||record.email||"",displayName:resolvedName||record.displayName||"Freelancer",photoURL:user.photoURL||record.photoURL||"",providerIds,emailVerified:!!user.emailVerified,lastLogin:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+  await ref.set({uid:user.uid,email:resolvedEmail||record.email||"",displayName:resolvedName||record.displayName||"Freelancer",photoURL:user.photoURL||record.photoURL||"",providerIds,emailVerified:!!user.emailVerified},{merge:true});
  }
 
  accessStatus=record?.accessStatus&&ACCESS_STATUSES.includes(record.accessStatus)?record.accessStatus:accessStatus;
@@ -7502,6 +7632,7 @@ async function resolveUserAccess(user){
 
 async function loadApprovedWorkspaceForUser(user, cloudData){
  if(!user||authState.accessStatus!=="approved")return;
+ recordApprovedWorkspaceOpen(user);
  if(cloudData?.workspace)applyCloudWorkspace(cloudData.workspace);
  try{
   const careerSnap=await db.collection("users").doc(user.uid).collection("careerDocuments").get();
@@ -7701,7 +7832,7 @@ async function handleGoogleSignIn(e) {
 
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    await auth.signInWithPopup(provider);
+    const cred=await auth.signInWithPopup(provider); await recordExplicitLogin(cred?.user);
   } catch (err) {
     if (err && (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request")) {
       console.warn("Google sign-in popup closed or cancelled by user:", err.code);
@@ -7746,10 +7877,12 @@ function handleAuthSubmit(e) {
   authState.message = "";
 
   if (authState.mode === "login") {
-    auth.signInWithEmailAndPassword(email, pass).catch(err => {
-      authState.error = formatAuthError(err);
-      renderAuthPortal();
-    });
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(cred=>recordExplicitLogin(cred?.user))
+      .catch(err => {
+        authState.error = formatAuthError(err);
+        renderAuthPortal();
+      });
   } else if (authState.mode === "signup") {
     auth.createUserWithEmailAndPassword(email, pass)
       .then(async cred => {
